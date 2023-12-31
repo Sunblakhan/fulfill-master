@@ -7,6 +7,7 @@ import TakeMeToAdmin from "./components/TakeMeToAdmin";
 import Register from "./auth/Register";
 import AddInventory from "./views/FBA/AddInventory";
 import ViewInventories from "./views/FBA/ViewInventories";
+import LogisticsRegistration from "./views/LogisticsRegistration";
 
 function App() {
   return (
@@ -34,6 +35,14 @@ function App() {
             element={
               <Layout>
                 <ViewInventories />
+              </Layout>
+            }
+          />
+          <Route
+            path="/logisticsRegistration"
+            element={
+              <Layout>
+                <LogisticsRegistration />
               </Layout>
             }
           />

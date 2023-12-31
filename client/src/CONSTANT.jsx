@@ -20,6 +20,14 @@ export const checkLoginFromNonLogin = () => {
     : true;
 };
 
+export function camelCaseToNormalString(camelCaseString) {
+  // Use a regular expression to insert a space before all uppercase letters
+  return camelCaseString.replace(/([A-Z])/g, ' $1')
+                      // Capitalize the first letter and convert the rest to lowercase
+                      .replace(/^./, function(str){ return str.toUpperCase(); });
+}
+
+
 export const getUserData = () => {
   if (
     sessionStorage.getItem("loggedin") &&

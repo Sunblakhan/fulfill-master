@@ -90,6 +90,28 @@ export default function Sidebar() {
               },
             ]}
           />
+          <RenderMultipleItem
+          label="FBM"
+          items={[
+            {
+              label: "Add Inventory",
+              to: "/fbm/addInventory",
+            },
+            {
+              label: "Add Order",
+              to: "/fbm/addOrder",
+            },
+            {
+              label: "View Inventories",
+              to: "/fbm/viewInventories",
+            },
+            {
+              label: "View Orders",
+              to: "/fbm/viewOrders",
+            },
+          ]}
+        />
+        <RenderSingleItem label="Logistics Registration" to="/logisticsRegistration" />
         </ul>
       </div>
     </div>
