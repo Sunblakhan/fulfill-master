@@ -52,11 +52,13 @@ def user(request, pk=None):
     if request.method == "GET":
         # GET A USER BY ID
         if pk is None:
-            return JsonResponse({"message": "No user id given!"}, safe=False)
-        data = JSONParser().parse(request)
-        instance = models.CustomUsers.objects.get(pk=int(pk))
-        object = serializers.ViewUserSerializer(instance, many=False)
-        return JsonResponse(object.data, safe=False)
+            instance = models.CustomUsers.objects.all()
+            object = serializers.ViewUserSerializer(instance, many=True)
+            return JsonResponse(object.data, safe=False)
+        else:
+            instance = models.CustomUsers.objects.get(pk=int(pk))
+            object = serializers.ViewUserSerializer(instance, many=False)
+            return JsonResponse(object.data)
     if request.method == "POST":
         # ADD A USER
         data = JSONParser().parse(request)

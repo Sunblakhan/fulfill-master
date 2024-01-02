@@ -59,6 +59,14 @@ class ViewFBMOrdersSerializer(serializers.ModelSerializer):
         model = models.Order
         fields = "__all__"
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if "pdf" in representation and representation["pdf"]:
+            representation["pdf"] = representation["pdf"].replace(
+                "/orders", "assets"
+            )
+        return representation
+
 
 class LogisticsRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -71,4 +79,17 @@ class ViewLogisticsRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.LogisticsRegistration
+        fields = "__all__"
+
+class InvoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Invoice
+        fields = "__all__"
+
+
+class ViewInvoiceSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer()
+
+    class Meta:
+        model = models.Invoice
         fields = "__all__"

@@ -152,6 +152,11 @@ export default function Sidebar({ session }) {
                 to="/logisticsRegistration"
                 icon={<SiGnuprivacyguard />}
               />
+              <RenderSingleItem
+                label="My Invoices"
+                to="/logistic/myInvoices"
+                icon={<FaFileInvoice />}
+              />
             </>
           )}
           {session?.personal?.mode === "logistic" && (

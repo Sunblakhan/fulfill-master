@@ -245,3 +245,26 @@ def logistics_registration(request, user_id=None):
             serializer.save()
             return JsonResponse(serializer.data, status=status.HTTP_200_OK)
         return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET", "POST"])
+@permission_classes([])
+@authentication_classes([])
+def invoice(request, user_id=None):
+    if request.method == "GET":
+        if user_id is None:
+            warehouses = models.Invoice.objects.all().order_by("-timestamp")
+        else:
+            warehouses = models.Invoice.objects.filter(user__id=int(user_id)).order_by(
+                "-timestamp"
+            )
+        serializer = serializers.ViewInvoiceSerializer(warehouses, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+    elif request.method == "POST":
+        data = request.data
+        serializer = serializers.InvoiceSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

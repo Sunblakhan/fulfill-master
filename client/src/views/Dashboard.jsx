@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { BsFillInboxesFill } from "react-icons/bs";
 import { FaFileInvoice } from "react-icons/fa";
 import { FaSackDollar } from "react-icons/fa6";
@@ -25,6 +25,9 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import ViewOrders from "./FBM/ViewOrders";
+import InputBox from "../components/InputBox";
+import CustomButton from "../components/CustomButton";
 
 ChartJS.register(
   CategoryScale,
@@ -36,6 +39,69 @@ ChartJS.register(
   Legend
 );
 
+const ToDoList = () => {
+  const [tasks, setTasks] = useState([]);
+  const [newTask, setNewTask] = useState("");
+
+  const handleAddTask = () => {
+    if (newTask.trim() === "") return; // Prevent adding empty tasks
+    const newTaskObj = { text: newTask, completed: false };
+    setTasks([...tasks, newTaskObj]);
+    setNewTask(""); // Reset input field after adding a task
+  };
+
+  const handleToggleTask = (index) => {
+    const updatedTasks = tasks.map((task, i) => {
+      if (i === index) {
+        return { ...task, completed: !task.completed };
+      }
+      return task;
+    });
+    setTasks(updatedTasks);
+  };
+
+  return (
+    <div className="w-1/3 mx-auto">
+      <div className="bg-white shadow-md rounded-lg py-4 px-5">
+        <dt className="mb-5 text-2xl font-extrabold">To-Do List</dt>
+        <div className="mb-4 flex flex-row space-x-3 items-center justify-center">
+          <InputBox
+            type="text"
+            placeholder="Add a new task..."
+            value={newTask}
+            onChange={(e) => setNewTask(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
+          />
+          {/* <CustomButton
+            onClick={handleAddTask}
+            width="w-fit w-[5rem] whitespace-nowrap"
+            padding="px-2"
+            label="Add"
+          /> */}
+        </div>
+        <div className="divide-y divide-gray-200">
+          {tasks.map((task, index) => (
+            <div key={index} className="flex items-center justify-between py-2">
+              <span
+                className={`text-gray-700 ${
+                  task.completed ? "line-through" : ""
+                }`}
+              >
+                {task.text}
+              </span>
+              <input
+                type="checkbox"
+                className="form-checkbox h-5 w-5 text-blue-600"
+                checked={task.completed}
+                onChange={() => handleToggleTask(index)}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const SocialCard = (props) => {
   return (
@@ -185,7 +251,7 @@ export default function Dashboard() {
       <div className="flex w-full flex-row space-x-3">
         <Card
           label="Total Order Delivered Count"
-          value={"99"}
+          value={<ViewOrders totalOrders />}
           icon={<TbLocationDiscount className="fill-accent_2 text-4xl" />}
         />
         <Card
@@ -229,7 +295,7 @@ export default function Dashboard() {
             />
           </div>
         </div>
-        <div className="w-1/3 mx-auto ">
+        {/* <div className="w-1/3 mx-auto ">
           <div className="bg-white shadow-md rounded-lg py-4 px-5">
             <dt class="mb-5 text-2xl font-extrabold">To-Do List</dt>
             <div className="mb-4">
@@ -263,7 +329,8 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
+        <ToDoList />
       </div>
       <div className="relative w-full flex-col shadow-md bg-white rounded-lg py-2 mt-5">
         <dt class="mb-2 mt-5 px-5 text-2xl font-extrabold">FBM Analytics</dt>

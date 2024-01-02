@@ -169,3 +169,26 @@ class LogisticsRegistration(models.Model):
 
     class Meta:
         verbose_name_plural = "Logistic Registrations"
+
+
+class Invoice(models.Model):
+    user = models.ForeignKey(
+        CustomUsers, related_name="user_invoices", on_delete=models.CASCADE
+    )
+    # creator = models.ForeignKey(
+    #     CustomUsers,
+    #     related_name="created_invoices",
+    #     on_delete=models.CASCADE,
+    #     null=True,
+    #     blank=True,
+    # )
+    products = models.TextField(default="[]")
+    total = models.PositiveBigIntegerField(default=0)
+    comments = models.TextField(default="", blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return str(self.total)
+
+    class Meta:
+        verbose_name_plural = "Invoices"

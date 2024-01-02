@@ -61,7 +61,7 @@ export default function Layout(props) {
           logout={logout}
           session={session}
         />
-        <div className="m-auto w-full max-w-screen-xl mt-10 flex flex-row h-full">
+        <div className="m-auto w-full max-w-screen-2xl mt-10 flex flex-row h-full">
           <Sidebar session={session} />
           <div className="w-full overflow-auto">{props.children}</div>
         </div>

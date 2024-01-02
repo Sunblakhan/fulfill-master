@@ -16,6 +16,9 @@ import ViewOrders from "./views/FBM/ViewOrders";
 import OrderRequests from "./views/Logistic/OrderRequests";
 import InventoryRequests from "./views/Logistic/InventoryRequests";
 import NewClientRequests from "./views/Logistic/NewClientRequests";
+import AddInvoice from "./views/Logistic/AddInvoice";
+import Page404 from "./views/Page404";
+import ViewInvoices from "./views/Logistic/ViewInvoices";
 
 function App() {
   return (
@@ -112,10 +115,34 @@ function App() {
               </Layout>
             }
           />
+          <Route
+            path="/logistic/addInvoice"
+            element={
+              <Layout>
+                <AddInvoice />
+              </Layout>
+            }
+          />
+          <Route
+            path="/logistic/viewInvoices"
+            element={
+              <Layout>
+                <ViewInvoices all={true} />
+              </Layout>
+            }
+          />
+          <Route
+            path="/logistic/myInvoices"
+            element={
+              <Layout>
+                <ViewInvoices />
+              </Layout>
+            }
+          />
           <Route path="/admin" element={<TakeMeToAdmin />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="*" element={<>No page 404</>} />
+          <Route path="*" element={<Page404 />} />
         </Routes>
       </Router>
     </div>

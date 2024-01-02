@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "authentication",
-    "api"
+    "api",
 ]
 
 MIDDLEWARE = [
@@ -158,6 +158,7 @@ STATIC_URL = "/assets/"
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "client", "dist", "assets"),  # update the STATICFILES_DIRS
+    os.path.join(BASE_DIR, "orders"),  # update the STATICFILES_DIRS
 )
 
 

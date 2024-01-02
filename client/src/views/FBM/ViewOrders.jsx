@@ -38,7 +38,17 @@ const RenderRow = ({ data }) => {
         {data?.product?.nameOnInventory}
       </th>
       <td className="px-6 py-4">{camelCaseToNormalString(data?.labelType)}</td>
-      <td className="px-6 py-4">{data?.pdf}</td>
+      <td className="px-6 py-4">
+        <span
+          onClick={() => {
+            const pdfUrl = `${CONSTANT.server}${data?.pdf}`;
+            window.open(pdfUrl, "_blank", "noopener,noreferrer");
+          }}
+          className="cursor-pointer text-indigo-500 smooth-transition hover:text-indigo-300"
+        >
+          Preview PDF
+        </span>
+      </td>
       <td
         className="px-6 py-4 cursor-pointer hover:text-gray-500"
         onClick={() => {
@@ -60,7 +70,7 @@ const RenderRow = ({ data }) => {
   );
 };
 
-export default function ViewOrders() {
+export default function ViewOrders(props) {
   const { session, setSession } = useContext(UserData);
 
   const [inventories, setInventories] = useState([]);
@@ -81,6 +91,15 @@ export default function ViewOrders() {
       fetchInventories();
     }
   }, [session]);
+
+  if (props?.totalOrders) {
+    return (
+      inventories?.map((a) => {
+        return a?.status === "delivered";
+      }).length || 67
+    );
+  }
+
   return (
     <div className="w-full">
       <h1 class="mb-5 text-center text-4xl font-extrabold tracking-tight text-black md:text-5xl lg:text-6xl">

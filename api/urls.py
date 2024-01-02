@@ -13,4 +13,6 @@ urlpatterns = [
     path('fbm-orders/<int:user_id>', views.fbm_orders, name='fbm-orders-list'),
     path('logistics-registration', views.logistics_registration, name='logistics_registration'),
     path('logistics-registration/<int:user_id>', views.logistics_registration, name='logistics_registration_user'),
+    path('invoice', views.invoice, name='invoice'),
+    path('invoice/<int:user_id>', views.invoice, name='invoice_user'),
 ]
