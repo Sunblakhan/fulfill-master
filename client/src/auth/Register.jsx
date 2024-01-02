@@ -6,8 +6,11 @@ import {
   setMessage,
   resetMessage,
   checkLoginFromLogin,
-  capitalizeFirstLetter
+  capitalizeFirstLetter,
 } from "../CONSTANT";
+import CustomButton from "../components/CustomButton";
+import InputBox from "../components/InputBox";
+import { SiGnuprivacyguard } from "react-icons/si";
 
 const Register = () => {
   const button = useRef(null);
@@ -57,6 +60,7 @@ const Register = () => {
           })
           .catch((error) => {
             console.log(error);
+            setMessage("Server error.", "red-500");
           });
       } else {
         setMessage("Password should be greater than 7 characters.", "red-500");
@@ -77,6 +81,7 @@ const Register = () => {
     phone: "",
     mode: "seller",
   };
+
   const [payload, setPayload] = useState(init__payload);
   const changePayload = (e) => {
     setPayload({
@@ -84,20 +89,16 @@ const Register = () => {
       [e.target.name]: e.target.value,
     });
   };
+
   return (
     <section className="bg-gray-50 dark:bg-gray-900">
-      <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-        <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-          <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-            <Link to="/">
-              <h1 className="text-center font-bold leading-tight tracking-tight text-gray-900 md:text-3xl text-xl dark:text-white">
-                Fulfill Master
-              </h1>
-            </Link>
-            <h1 className="text-center font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-xl dark:text-white">
+      <div className="flex flex-row w-full items-center justify-center min-h-screen h-full">
+        <div className="min-h-screen h-full md:w-1/2 w-full flex justify-center items-center">
+          <div className="md:w-3/5 space-y-4 md:space-y-6">
+            <h1 class="text-center text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-3xl lg:text-5xl">
               Register
             </h1>
-            <form className="space-y-3" onSubmit={register}>
+            <div className="space-y-4 md:space-y-6">
               <div>
                 <label
                   htmlFor="mode"
@@ -106,176 +107,120 @@ const Register = () => {
                   Registering as
                 </label>
                 <div className="flex flex-row w-full space-x-2">
-                  <div className="w-full flex items-center pl-4 border border-gray-200 rounded dark:border-gray-700">
-                    <input
-                      id="seller"
-                      type="radio"
-                      value="seller"
-                      checked={payload.mode === "seller"}
-                      onChange={changePayload}
-                      required
-                      name="mode"
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 ring-0"
-                    />
-                    <label
-                      htmlFor="seller"
-                      className="w-full py-4 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                    >
-                      Seller
-                    </label>
-                  </div>
-                  <div className="w-full flex items-center pl-4 border border-gray-200 rounded dark:border-gray-700">
-                    <input
-                      id="logistics"
-                      type="radio"
-                      value="logistic"
-                      checked={payload.mode === "logistic"}
-                      onChange={changePayload}
-                      required
-                      name="mode"
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 ring-0"
-                    />
-                    <label
-                      htmlFor="logistics"
-                      className="w-full py-4 ml-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                    >
-                      Logistics Provider
-                    </label>
-                  </div>
+                  <InputBox
+                    name="mode"
+                    type="radio"
+                    value="seller"
+                    label="Seller"
+                    checked={payload.mode === "seller"}
+                    onChange={changePayload}
+                  />
+                  <InputBox
+                    name="mode"
+                    type="radio"
+                    value="logistic"
+                    label="Logistics"
+                    checked={payload.mode === "logistic"}
+                    onChange={changePayload}
+                  />
                 </div>
               </div>
-              <div>
-                <label
-                  htmlFor="name"
-                  className="block mb-1 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  Name
-                </label>
-                <input
-                  type="text"
+              <div className="flex flex-row w-full space-x-2">
+                <InputBox
                   name="name"
-                  id="name"
+                  label="Name"
                   value={payload.name}
                   onChange={changePayload}
-                  required
-                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder=""
                 />
-              </div>
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block mb-1 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  Email
-                </label>
-                <input
+
+                <InputBox
                   type="email"
                   name="email"
-                  id="email"
+                  label="Email"
                   value={payload.email}
                   onChange={changePayload}
-                  required
-                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder=""
                 />
               </div>
-              <div>
-                <label
-                  htmlFor="companyName"
-                  className="block mb-1 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  Company Name
-                </label>
-                <input
-                  type="text"
+
+              <div className="flex flex-row w-full space-x-2">
+                <InputBox
                   name="companyName"
-                  id="companyName"
+                  label="Company Name"
                   value={payload.companyName}
                   onChange={changePayload}
-                  required
-                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder=""
                 />
-              </div>{" "}
-              <div>
-                <label
-                  htmlFor="address"
-                  className="block mb-1 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  Company Address
-                </label>
-                <input
-                  type="text"
+                <InputBox
                   name="address"
-                  id="address"
+                  label="Company Address"
                   value={payload.address}
                   onChange={changePayload}
-                  required
-                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder=""
                 />
               </div>
-              <div>
-                <label
-                  htmlFor="phone"
-                  className="block mb-1 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  Phone
-                </label>
-                <input
+
+              <div className="flex flex-row w-full space-x-2">
+                <InputBox
                   type="tel"
                   name="phone"
-                  id="phone"
+                  label="Phone"
                   value={payload.phone}
                   onChange={changePayload}
-                  required
-                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder=""
                 />
-              </div>
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block mb-1 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  Password
-                </label>
-                <input
+
+                <InputBox
                   type="password"
                   name="password"
-                  id="password"
+                  label="Password"
                   value={payload.password}
                   onChange={changePayload}
-                  required
                   placeholder="••••••••"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 />
               </div>
-              <div></div>
-              <button
-              ref={button}
-                type="submit"
-                className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                Register
-              </button>
-              <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                Already have an account?{" "}
-                <Link
-                  to="/login"
-                  className="font-medium text-primary-600 hover:underline dark:text-primary-500"
-                >
-                  Login.
-                </Link>
-              </p>
+
+              <CustomButton
+                label="Register"
+                onClick={register}
+                icon={<SiGnuprivacyguard />}
+              />
+              <div>
+                <p className="text-sm font-light text-gray-500 dark:text-gray-400">
+                  Already have an account?{" "}
+                  <Link
+                    to="/login"
+                    className="font-medium text-primary-600 hover:underline dark:text-primary-500"
+                  >
+                    Login.
+                  </Link>
+                </p>
+                <p className="text-sm font-light text-gray-500 dark:text-gray-400">
+                  Back to{" "}
+                  <Link
+                    to="/"
+                    className="font-medium text-primary-600 hover:underline dark:text-primary-500"
+                  >
+                    home.
+                  </Link>
+                </p>
+              </div>
               <div
                 className="my-10"
                 id="error"
                 style={{ display: "none" }}
               ></div>
-            </form>
+            </div>
           </div>
+        </div>
+        <div className="min-h-screen h-full bg-gradient-to-r from-green-200 via-green-300 to-blue-500 md:w-1/2 w-full flex flex-col justify-center items-center">
+          <Link to="/">
+            {/* <h1 class="text-center text-4xl font-extrabold tracking-tight italic text-white md:text-5xl lg:text-6xl">
+              Fulfill Master
+            </h1> */}
+             <img
+              className={`w-60 object-contain`}
+              src="/logo_full.png"
+              alt="Fulfill Master Logo"
+            />
+          </Link>
+          <img className="mt-10 w-3/4" src="/illus/register.svg" />
         </div>
       </div>
     </section>

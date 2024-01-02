@@ -5,4 +5,5 @@ from . import models
 
 admin.site.register(models.Warehouses)
 admin.site.register(models.FBAInventoryRequest)
+admin.site.register(models.Order)
 admin.site.register(models.LogisticsRegistration)

@@ -7,6 +7,9 @@ import {
   resetMessage,
   checkLoginFromLogin,
 } from "../CONSTANT";
+import InputBox from "../components/InputBox";
+import CustomButton from "../components/CustomButton";
+import { RiLoginCircleFill } from "react-icons/ri";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -46,12 +49,13 @@ const Login = () => {
           })
           .catch((error) => {
             console.log(error);
+            setMessage("Server error.", "red-500");
           });
       } else {
-        setMessage("Please Enter Password", "red-500");
+        setMessage("Please enter password.", "red-500");
       }
     } else {
-      setMessage("Please Enter Valid Email", "red-500");
+      setMessage("Please enter valid email.", "red-500");
     }
     e.target.style.pointerEvents = "unset";
     e.target.innerHTML = "Log In";
@@ -70,67 +74,55 @@ const Login = () => {
   };
   return (
     <section className="bg-gray-50 dark:bg-gray-900">
-      <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-        <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-          <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-            <Link to="/">
-              <h1 className="text-center font-bold leading-tight tracking-tight text-gray-900 md:text-3xl text-xl dark:text-white">
-                Fulfill Master
-              </h1>
-            </Link>
-            <h1 className="text-center font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-xl dark:text-white">
+      <div className="flex flex-row-reverse w-full items-center justify-center min-h-screen h-full">
+        <div className="min-h-screen h-full md:w-1/2 w-full flex justify-center items-center">
+          <div className="md:w-3/5 space-y-4 md:space-y-6">
+            <h1 class="text-center text-2xl font-extrabold leading-none tracking-tight text-gray-900 md:text-3xl lg:text-5xl">
               Log In
             </h1>
             <div className="space-y-4 md:space-y-6">
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={payload.email}
-                  onChange={changePayload}
-                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder=""
-                  required
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={payload.password}
-                  onChange={changePayload}
-                  placeholder="••••••••"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  required
-                />
-              </div>
-              <button
+              <InputBox
+                type="email"
+                name="email"
+                label="Email"
+                value={payload.email}
+                onChange={changePayload}
+              />
+
+              <InputBox
+                type="password"
+                name="password"
+                label="Password"
+                value={payload.password}
+                onChange={changePayload}
+                placeholder="••••••••"
+              />
+
+              <CustomButton
+                label="Log In"
                 onClick={login}
-                className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                Log In
-              </button>
-              <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                Don’t have an account yet?{" "}
-                <Link
-                  to="/register"
-                  className="font-medium text-primary-600 hover:underline dark:text-primary-500"
-                >
-                  Register.
-                </Link>
-              </p>
+                icon={<RiLoginCircleFill />}
+              />
+              <div>
+                <p className="text-sm font-light text-gray-500 dark:text-gray-400">
+                  Don’t have an account yet?{" "}
+                  <Link
+                    to="/register"
+                    className="font-medium text-primary-600 hover:underline dark:text-primary-500"
+                  >
+                    Register.
+                  </Link>
+                </p>
+                <p className="text-sm font-light text-gray-500 dark:text-gray-400">
+                  Back to{" "}
+                  <Link
+                    to="/"
+                    className="font-medium text-primary-600 hover:underline dark:text-primary-500"
+                  >
+                    home.
+                  </Link>
+                </p>
+              </div>
               <div
                 className="my-10"
                 id="error"
@@ -138,6 +130,19 @@ const Login = () => {
               ></div>
             </div>
           </div>
+        </div>
+        <div className="min-h-screen h-full bg-gradient-to-r from-green-200 via-green-300 to-blue-500 md:w-1/2 w-full flex flex-col justify-center items-center">
+          <Link to="/">
+            {/* <h1 class="text-center text-4xl font-extrabold tracking-tight italic text-white md:text-5xl lg:text-6xl">
+              Fulfill Master
+            </h1> */}
+            <img
+              className={`w-60 object-contain`}
+              src="/logo_full.png"
+              alt="Fulfill Master Logo"
+            />
+          </Link>
+          <img className="mt-10 w-3/4" src="/illus/login.svg" />
         </div>
       </div>
     </section>

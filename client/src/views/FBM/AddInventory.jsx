@@ -98,7 +98,7 @@ export default function AddInventory() {
                 await axios
                   .post(
                     CONSTANT.server +
-                      `api/fba-inventory-requests/${session?.personal?.id}`,
+                      `api/fbm-inventory-requests/${session?.personal?.id}`,
                     {
                       ...payload,
                       warehouse: payload.warehouse?.value,
@@ -108,7 +108,7 @@ export default function AddInventory() {
                     if (responce?.message) {
                       setMessage(responce?.message, "red-500");
                     } else {
-                      navigate("/fba/viewInventories");
+                      navigate("/fbm/viewInventories");
                     }
                   })
                   .catch((error) => {
@@ -137,7 +137,7 @@ export default function AddInventory() {
   return (
     <div className="w-full">
       <h1 class="mb-5 text-center text-4xl font-extrabold tracking-tight text-black md:text-5xl lg:text-6xl">
-        FBA
+        FBM
       </h1>
       <h1 class="text-center mb-5 text-4xl font-extrabold tracking-tight text-black">
         Add Inventory Request

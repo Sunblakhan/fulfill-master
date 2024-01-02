@@ -5,7 +5,7 @@ import {
   CONSTANT,
   camelCaseToNormalString,
 } from "../../CONSTANT";
-import UserData from "./../../contexts/UserData";
+import UserData from "../../contexts/UserData";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ModalWrapper from "../../components/ModalWrapper";
@@ -87,7 +87,7 @@ const RenderRow = ({ data, setIsEdit }) => {
   );
 };
 
-export default function ViewInventories(props) {
+export default function ViewInventories() {
   const { session, setSession } = useContext(UserData);
 
   const [inventories, setInventories] = useState([]);
@@ -95,7 +95,7 @@ export default function ViewInventories(props) {
   const fetchInventories = async () => {
     await axios
       .get(
-        CONSTANT.server + `api/fba-inventory-requests/${session?.personal?.id}`
+        CONSTANT.server + `api/fbm-inventory-requests/${session?.personal?.id}`
       )
       .then(async (responce) => {
         setInventories(responce?.data);
@@ -122,7 +122,7 @@ export default function ViewInventories(props) {
     // Validate warehouse
     await axios
       .put(
-        CONSTANT.server + `api/fba-inventory-requests/${session?.personal?.id}`,
+        CONSTANT.server + `api/fbm-inventory-requests/${session?.personal?.id}`,
         {
           id: isEdit.id,
           comments: isEdit.value,
@@ -143,7 +143,6 @@ export default function ViewInventories(props) {
         console.log(error);
       });
   };
-
   return (
     <div className="w-full">
       <ModalWrapper
@@ -181,7 +180,7 @@ export default function ViewInventories(props) {
         </div>
       </ModalWrapper>
       <h1 class="mb-5 text-center text-4xl font-extrabold tracking-tight text-black md:text-5xl lg:text-6xl">
-        FBA
+        FBM
       </h1>
       <h1 class="text-center mb-5 text-4xl font-extrabold tracking-tight text-black">
         View Inventory Requests

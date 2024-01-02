@@ -63,7 +63,7 @@ def user(request, pk=None):
         serializer = serializers.CustomUserSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            userData = models.CustomUsers.objects.filter(username=data["email"]).first()
+            userData = models.CustomUsers.objects.filter(email=data["email"]).first()
             SerializedData = serializers.ViewUserSerializer(userData, many=False)
             return JsonResponse(SerializedData.data, status=status.HTTP_201_CREATED)
         print(serializer.errors)

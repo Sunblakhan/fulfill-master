@@ -7,11 +7,19 @@ import TakeMeToAdmin from "./components/TakeMeToAdmin";
 import Register from "./auth/Register";
 import AddInventory from "./views/FBA/AddInventory";
 import ViewInventories from "./views/FBA/ViewInventories";
+import FBMAddInventory from "./views/FBM/AddInventory";
+import FBMViewInventories from "./views/FBM/ViewInventories";
+import AddOrder from "./views/FBM/AddOrder";
 import LogisticsRegistration from "./views/LogisticsRegistration";
+import "./App.css";
+import ViewOrders from "./views/FBM/ViewOrders";
+import OrderRequests from "./views/Logistic/OrderRequests";
+import InventoryRequests from "./views/Logistic/InventoryRequests";
+import NewClientRequests from "./views/Logistic/NewClientRequests";
 
 function App() {
   return (
-    <div className="App min-h-screen h-full">
+    <div className="App min-h-screen h-full bg-[#F4F7FA]">
       <Router>
         <Routes>
           <Route
@@ -39,6 +47,38 @@ function App() {
             }
           />
           <Route
+            path="/fbm/addInventory"
+            element={
+              <Layout>
+                <FBMAddInventory />
+              </Layout>
+            }
+          />
+          <Route
+            path="/fbm/viewInventories"
+            element={
+              <Layout>
+                <FBMViewInventories />
+              </Layout>
+            }
+          />
+          <Route
+            path="/fbm/addOrder"
+            element={
+              <Layout>
+                <AddOrder />
+              </Layout>
+            }
+          />
+          <Route
+            path="/fbm/viewOrders"
+            element={
+              <Layout>
+                <ViewOrders />
+              </Layout>
+            }
+          />
+          <Route
             path="/logisticsRegistration"
             element={
               <Layout>
@@ -46,9 +86,36 @@ function App() {
               </Layout>
             }
           />
+          {/* Logistics */}
+
+          <Route
+            path="/logistic/orderRequests"
+            element={
+              <Layout>
+                <OrderRequests />
+              </Layout>
+            }
+          />
+          <Route
+            path="/logistic/inventoryRequests"
+            element={
+              <Layout>
+                <InventoryRequests />
+              </Layout>
+            }
+          />
+          <Route
+            path="/logistic/newClientRequests"
+            element={
+              <Layout>
+                <NewClientRequests />
+              </Layout>
+            }
+          />
           <Route path="/admin" element={<TakeMeToAdmin />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="*" element={<>No page 404</>} />
         </Routes>
       </Router>
     </div>

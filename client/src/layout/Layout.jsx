@@ -35,11 +35,11 @@ export default function Layout(props) {
   // ------------------
   // SESSION - END
   // ------------------
-  // useEffect(() => {
-  //   if (checkLoginFromNonLogin()) {
-  //     navigate("/login");
-  //   }
-  // }, [session]);
+  useEffect(() => {
+    if (checkLoginFromNonLogin()) {
+      navigate("/login");
+    }
+  }, [session]);
 
   const logout = async () => {
     sessionStorage.removeItem("loggedin");
@@ -59,11 +59,13 @@ export default function Layout(props) {
           __init_session={__init_session}
           setSession={setSession}
           logout={logout}
+          session={session}
         />
-        <div className="m-auto max-w-screen-xl mt-10 flex flex-row h-full">
-          <Sidebar />
-          <div className="w-full">{props.children}</div>
+        <div className="m-auto w-full max-w-screen-xl mt-10 flex flex-row h-full">
+          <Sidebar session={session} />
+          <div className="w-full overflow-auto">{props.children}</div>
         </div>
+        <div className="py-3"></div>
       </UserData.Provider>
     </>
   );

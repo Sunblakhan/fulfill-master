@@ -24,6 +24,7 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUsers(AbstractUser):
+    username = models.CharField(max_length=256, null=True, blank=True)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=2048)
     name = models.CharField(max_length=256)
@@ -34,5 +35,12 @@ class CustomUsers(AbstractUser):
     mode = models.CharField(max_length=8, choices=mode_choices, default="seller")
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    # Set USERNAME_FIELD to 'email'
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []  # List other required fields here
+
     def __str__(self):
         return self.email
+
+    # Optionally, remove the username field if not used elsewhere
+    # username = None
