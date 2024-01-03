@@ -129,9 +129,13 @@ def fba_inventory(request, user_id=None):
 @authentication_classes([])
 def fbm_inventory(request, user_id=None):
     if request.method == "GET":
-        fbm_inventory_requests = models.FBMInventoryRequest.objects.filter(
-            user__id=int(user_id)
-        ).order_by("-timestamp")
+        fbm_inventory_requests = models.FBMInventoryRequest.objects.all().order_by(
+            "-timestamp"
+        )
+        if user_id is not None:
+            fbm_inventory_requests = models.FBMInventoryRequest.objects.filter(
+                user__id=int(user_id)
+            ).order_by("-timestamp")
         serializer = serializers.ViewFBMInventoryRequestSerializer(
             fbm_inventory_requests, many=True
         )

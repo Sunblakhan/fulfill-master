@@ -62,6 +62,7 @@ const RenderRow = ({ data, isEdit, setIsEdit, updateStatus }) => {
           {camelCaseToNormalString(data?.status)}
         </span>
       </td>
+      <td className="px-6 py-4 uppercase">{data?._type || "-"}</td>
       <td className="px-6 py-4">{data?.logisticsComments || "-"}</td>
       <th
         scope="row"
@@ -261,11 +262,35 @@ export default function InventoryRequests(props) {
     await axios
       .get(CONSTANT.server + `api/fba-inventory-requests`)
       .then(async (responce) => {
-        setInventories(
-          responce?.data?.filter((a, b) => {
-            return parseInt(a?.warehouse?.id) === session?.personal?.id;
+        await axios
+          .get(CONSTANT.server + `api/fbm-inventory-requests`)
+          .then(async (responce2) => {
+            setInventories([
+              ...responce?.data
+                ?.filter((a, b) => {
+                  return parseInt(a?.warehouse?.id) === session?.personal?.id;
+                })
+                .map((a) => {
+                  return {
+                    ...a,
+                    _type: "fba",
+                  };
+                }),
+              ...responce2?.data
+                ?.filter((a, b) => {
+                  return parseInt(a?.warehouse?.id) === session?.personal?.id;
+                })
+                .map((a) => {
+                  return {
+                    ...a,
+                    _type: "fbm",
+                  };
+                }),
+            ]);
           })
-        );
+          .catch((error) => {
+            console.log(error);
+          });
       })
       .catch((error) => {
         console.log(error);
@@ -443,6 +468,9 @@ export default function InventoryRequests(props) {
                 className="px-6 py-3 sticky left-0 bg-black h-fit"
               >
                 Inventory Status
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Type
               </th>
               <th scope="col" className="px-6 py-3">
                 Remarks

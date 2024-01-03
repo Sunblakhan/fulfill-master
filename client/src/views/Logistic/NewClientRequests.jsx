@@ -278,7 +278,9 @@ export default function NewClientRequests(props) {
   };
 
   if (props?.count) {
-    return inventories.length;
+    return inventories.filter((a) => {
+      return a?.status === "approve";
+    }).length;
   }
 
   if (props?.onlyTable) {
