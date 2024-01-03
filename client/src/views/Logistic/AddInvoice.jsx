@@ -191,7 +191,7 @@ export default function AddInvoice() {
               },
               ...warehouses.map((a) => {
                 return {
-                  id: a?.id,
+                  id: a?.user?.id,
                   name: `${a?.name} (${a?.email})`,
                 };
               }),
