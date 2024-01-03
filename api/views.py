@@ -12,6 +12,10 @@ from . import serializers
 from authentication.models import CustomUsers
 from django.db.models import Q
 
+from collections import Counter
+from django.db.models.functions import TruncMonth
+from django.db.models import Count
+
 
 def initialize_backend():
     try:
@@ -58,7 +62,7 @@ def warehouse(request, user_id=None):
         return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["GET", "POST", "PUT"])
+@api_view(["GET", "POST", "PUT", "DELETE"])
 @permission_classes([])
 @authentication_classes([])
 def fba_inventory(request, user_id=None):
@@ -94,14 +98,30 @@ def fba_inventory(request, user_id=None):
                 {"message": "Object not found or not a real owner."},
                 status=status.HTTP_404_NOT_FOUND,
             )
-
         serializer = serializers.FBAInventoryRequestSerializer(
             fba_inventory_request, data=request.data, partial=True
         )
         if serializer.is_valid():
+            print("Inside")
             serializer.save()
             return JsonResponse(serializer.data, status=status.HTTP_200_OK)
         return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == "DELETE":
+        try:
+            # Assuming you're using user_id to find the FBAInventoryRequest
+            fba_inventory_request = models.FBAInventoryRequest.objects.get(
+                id=int(user_id)
+            )
+            fba_inventory_request.delete()
+            return JsonResponse(
+                {"message": "Inventory request deleted successfully."},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        except models.FBAInventoryRequest.DoesNotExist:
+            return JsonResponse(
+                {"message": "Object not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 @api_view(["GET", "POST", "PUT"])
@@ -182,7 +202,7 @@ def fbm_orders(request, user_id=None):
         data = request.data
         print(data)
 
-        serializer = serializers.ViewFBMOrdersSerializer(
+        serializer = serializers.FBMOrdersSerializer(
             order_request, data=request.data, partial=True
         )
         if serializer.is_valid():
@@ -238,7 +258,7 @@ def logistics_registration(request, user_id=None):
         data = request.data
         print(data)
 
-        serializer = serializers.ViewLogisticsRegistrationSerializer(
+        serializer = serializers.LogisticsRegistrationSerializer(
             order_request, data=request.data, partial=True
         )
         if serializer.is_valid():
@@ -247,7 +267,20 @@ def logistics_registration(request, user_id=None):
         return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["GET", "POST"])
+@api_view(["GET", "POST", "PUT"])
+@permission_classes([])
+@authentication_classes([])
+def oneinvoice(request, user_id=None):
+    if request.method == "GET":
+        if user_id is None:
+            return JsonResponse({}, safe=False)
+        else:
+            warehouses = models.Invoice.objects.get(id=int(user_id))
+        serializer = serializers.ViewInvoiceSerializer(warehouses)
+        return JsonResponse(serializer.data)
+
+
+@api_view(["GET", "POST", "PUT"])
 @permission_classes([])
 @authentication_classes([])
 def invoice(request, user_id=None):
@@ -268,3 +301,93 @@ def invoice(request, user_id=None):
             serializer.save()
             return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
         return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == "PUT":
+        try:
+            order_request = models.Invoice.objects.get(id=int(request.data.get("id")))
+        except models.Invoice.DoesNotExist:
+            return JsonResponse(
+                {"message": "Object not found or not a real owner."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if user_id is None:
+            print("Logistic update")
+        data = request.data
+        print(data)
+
+        serializer = serializers.InvoiceSerializer(
+            order_request, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=status.HTTP_200_OK)
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+def chart_data_view(request, user_id):
+    # Ensure user_id is an integer
+    user_id = int(user_id)
+
+    # Orders Pie Chart Data
+    orders = (
+        models.Order.objects.filter(user__id=user_id)
+        .values("status")
+        .annotate(total=Count("status"))
+    )
+    pie_labels = [order["status"] for order in orders]
+    pie_data = [order["total"] for order in orders]
+
+    # FBM Bar Chart Data
+    fbm_data = (
+        models.FBMInventoryRequest.objects.filter(user__id=user_id)
+        .annotate(month=TruncMonth("timestamp"))
+        .values("month", "status")
+        .annotate(total=Count("status"))
+        .order_by("month")
+    )
+
+    # Initialize bar_data dictionary
+    bar_labels = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ]
+    bar_data = {
+        choice[0]: [0] * 12 for choice in models.FBMInventoryRequest.STATUS_CHOICES
+    }
+
+    for item in fbm_data:
+        month_index = item["month"].month - 1
+        status = item["status"]
+        if status in bar_data:
+            bar_data[status][month_index] = item["total"]
+
+    # Structure Final JSON response
+    response = {
+        "pieChart": {
+            "labels": pie_labels,
+            "data": pie_data,
+        },
+        "barChart": {
+            "labels": bar_labels,
+            "datasets": [
+                {
+                    "label": status,
+                    "data": counts,
+                }
+                for status, counts in bar_data.items()
+            ],
+        },
+    }
+
+    return JsonResponse(response)

@@ -44,9 +44,9 @@ const RenderRow = ({ data, isEdit, setIsEdit, updateStatus }) => {
           </span>
         ) : (
           <span
-            class={`bg-blue-100 text-blue-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded`}
+            class={`bg-yellow-100 text-yellow-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded`}
           >
-            {camelCaseToNormalString("Requested")}
+            {camelCaseToNormalString("Pending")}
           </span>
         )}
       </td>
@@ -161,9 +161,9 @@ const RenderRow2 = ({ data, isEdit, setIsEdit, updateStatus }) => {
           </span>
         ) : (
           <span
-            class={`bg-blue-100 text-blue-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded`}
+            class={`bg-yellow-100 text-yellow-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded`}
           >
-            {camelCaseToNormalString("Requested")}
+            {camelCaseToNormalString("Pending")}
           </span>
         )}
       </td>
@@ -231,7 +231,11 @@ export default function NewClientRequests(props) {
     await axios
       .get(CONSTANT.server + `api/logistics-registration`)
       .then(async (responce) => {
-        setInventories(responce?.data);
+        setInventories(
+          responce?.data?.filter((a, b) => {
+            return parseInt(a?.warehouse?.id) === session?.personal?.id;
+          })
+        );
       })
       .catch((error) => {
         console.log(error);
@@ -272,6 +276,10 @@ export default function NewClientRequests(props) {
         console.log(error);
       });
   };
+
+  if (props?.count) {
+    return inventories.length;
+  }
 
   if (props?.onlyTable) {
     return (

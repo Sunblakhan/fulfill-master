@@ -1,6 +1,7 @@
 from django.db import models
 from authentication.models import CustomUsers
 import uuid
+import hashlib
 
 # Create your models here.
 
@@ -18,11 +19,12 @@ class Warehouses(models.Model):
 
 class FBAInventoryRequest(models.Model):
     STATUS_CHOICES = [
+        ("pending", "Pending"),
         ("requested", "Requested"),
-        ("accepted", "Accepted"),
+        ("acknowledged", "Acknowledged"),
+        ("shipped", "Shipped"),
+        ("delivered", "Delivered"),
         ("cancelled", "Cancelled"),
-        ("declined", "Declined"),
-        ("error", "Error"),
     ]
 
     RECEIVED_STATUS_CHOICES = [
@@ -30,17 +32,24 @@ class FBAInventoryRequest(models.Model):
         ("notReceivedYet", "Not Received yet"),
     ]
 
-    user = models.ForeignKey(CustomUsers, on_delete=models.CASCADE)
-    warehouse = models.ForeignKey(Warehouses, on_delete=models.CASCADE)
+    warehouse = models.ForeignKey(
+        CustomUsers,
+        related_name="user_logistic_fba",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
+    user = models.ForeignKey(
+        CustomUsers, related_name="user_fba", on_delete=models.CASCADE
+    )
     totalSKU = models.PositiveIntegerField(default=0)
     totalBoxes = models.PositiveIntegerField(default=0)
     nameOnInventory = models.CharField(max_length=255)
     companyName = models.CharField(max_length=255)
     packageComingFrom = models.TextField(help_text="Amazon eBay Walmart")
+    pdf = models.FileField(upload_to="orders/", null=True, blank=True)
     comments = models.TextField(null=True, blank=True)
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="requested"
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     trackingNumber = models.CharField(max_length=50, blank=True, null=True)
     receivedStatus = models.CharField(
         max_length=20, choices=RECEIVED_STATUS_CHOICES, default="notReceivedYet"
@@ -54,14 +63,24 @@ class FBAInventoryRequest(models.Model):
     class Meta:
         verbose_name_plural = "FBA Inventory Requests"
 
+    def save(self, *args, **kwargs):
+        if self.pdf:
+            # Generate a UUID, then hash it and take the first 12 characters
+            uuid_str = str(uuid.uuid4())
+            hash_str = hashlib.sha256(uuid_str.encode()).hexdigest()[:12]
+            self.uniqueHash = hash_str
+            self.pdf.name = f"{self.pdf.name.split('.')[0]}_fba_{self.uniqueHash}.{self.pdf.name.split('.')[-1]}"
+        super(FBAInventoryRequest, self).save(*args, **kwargs)
+
 
 class FBMInventoryRequest(models.Model):
     STATUS_CHOICES = [
+        ("pending", "Pending"),
         ("requested", "Requested"),
-        ("accepted", "Accepted"),
+        ("acknowledged", "Acknowledged"),
+        ("shipped", "Shipped"),
+        ("delivered", "Delivered"),
         ("cancelled", "Cancelled"),
-        ("declined", "Declined"),
-        ("error", "Error"),
     ]
 
     RECEIVED_STATUS_CHOICES = [
@@ -69,17 +88,23 @@ class FBMInventoryRequest(models.Model):
         ("notReceivedYet", "Not Received yet"),
     ]
 
-    user = models.ForeignKey(CustomUsers, on_delete=models.CASCADE)
-    warehouse = models.ForeignKey(Warehouses, on_delete=models.CASCADE)
+    warehouse = models.ForeignKey(
+        CustomUsers,
+        related_name="user_logistic_fbm",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
+    user = models.ForeignKey(
+        CustomUsers, related_name="user_fbm", on_delete=models.CASCADE
+    )
     totalSKU = models.PositiveIntegerField(default=0)
     totalBoxes = models.PositiveIntegerField(default=0)
     nameOnInventory = models.CharField(max_length=255)
     companyName = models.CharField(max_length=255)
     packageComingFrom = models.TextField(help_text="Amazon eBay Walmart")
     comments = models.TextField(null=True, blank=True)
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="requested"
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     trackingNumber = models.CharField(max_length=50, blank=True, null=True)
     receivedStatus = models.CharField(
         max_length=20, choices=RECEIVED_STATUS_CHOICES, default="notReceivedYet"
@@ -100,11 +125,12 @@ class Order(models.Model):
         ("provideLabel", "Provide Label"),
     ]
     STATUS_CHOICES = [
+        ("pending", "Pending"),
         ("requested", "Requested"),
         ("acknowledged", "Acknowledged"),
         ("shipped", "Shipped"),
         ("delivered", "Delivered"),
-        ("error", "Error"),
+        ("cancelled", "Cancelled"),
     ]
     user = models.ForeignKey(
         CustomUsers, on_delete=models.DO_NOTHING, blank=True, null=True
@@ -113,19 +139,20 @@ class Order(models.Model):
     labelType = models.CharField(
         max_length=15, choices=LABEL_TYPES, default="labelYourself"
     )
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="requested"
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     trackingNumber = models.TextField(blank=True)
     pdf = models.FileField(upload_to="orders/")
     prep = models.TextField(blank=True)
     expectedDeliveryDate = models.DateField()
-    uniqueHash = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
         if self.pdf:
-            self.pdf.name = f"{self.pdf.name.split('.')[0]}_{self.uniqueHash}.{self.pdf.name.split('.')[-1]}"
+            # Generate a UUID, then hash it and take the first 12 characters
+            uuid_str = str(uuid.uuid4())
+            hash_str = hashlib.sha256(uuid_str.encode()).hexdigest()[:12]
+            self.uniqueHash = hash_str
+            self.pdf.name = f"{self.pdf.name.split('.')[0]}_order_{self.uniqueHash}.{self.pdf.name.split('.')[-1]}"
         super(Order, self).save(*args, **kwargs)
 
     class Meta:
@@ -142,7 +169,16 @@ class LogisticsRegistration(models.Model):
         ("100<", "100<"),
     ]
 
-    user = models.ForeignKey(CustomUsers, on_delete=models.CASCADE)
+    warehouse = models.ForeignKey(
+        CustomUsers,
+        related_name="user_logistic",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
+    user = models.ForeignKey(
+        CustomUsers, related_name="user_to_add", on_delete=models.CASCADE
+    )
     name = models.CharField(max_length=255)
     email = models.EmailField()
     phone = models.CharField(max_length=50)
@@ -172,17 +208,20 @@ class LogisticsRegistration(models.Model):
 
 
 class Invoice(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("paid", "Paid"),
+        ("cancelled", "Cancelled"),
+    ]
+
     user = models.ForeignKey(
         CustomUsers, related_name="user_invoices", on_delete=models.CASCADE
     )
-    # creator = models.ForeignKey(
-    #     CustomUsers,
-    #     related_name="created_invoices",
-    #     on_delete=models.CASCADE,
-    #     null=True,
-    #     blank=True,
-    # )
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="pending", null=True, blank=True
+    )
     products = models.TextField(default="[]")
+    pdf = models.FileField(upload_to="orders/", blank=True, null=True)
     total = models.PositiveBigIntegerField(default=0)
     comments = models.TextField(default="", blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -192,3 +231,12 @@ class Invoice(models.Model):
 
     class Meta:
         verbose_name_plural = "Invoices"
+
+    def save(self, *args, **kwargs):
+        if self.pdf:
+            # Generate a UUID, then hash it and take the first 12 characters
+            uuid_str = str(uuid.uuid4())
+            hash_str = hashlib.sha256(uuid_str.encode()).hexdigest()[:12]
+            self.uniqueHash = hash_str
+            self.pdf.name = f"{self.pdf.name.split('.')[0]}_invoice_{self.uniqueHash}.{self.pdf.name.split('.')[-1]}"
+        super(Invoice, self).save(*args, **kwargs)

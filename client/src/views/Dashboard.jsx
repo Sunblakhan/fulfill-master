@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { BsFillInboxesFill } from "react-icons/bs";
 import { FaFileInvoice } from "react-icons/fa";
 import { FaSackDollar } from "react-icons/fa6";
@@ -28,6 +28,10 @@ import {
 import ViewOrders from "./FBM/ViewOrders";
 import InputBox from "../components/InputBox";
 import CustomButton from "../components/CustomButton";
+import ViewInvoices from "./Logistic/ViewInvoices";
+import UserData from "../contexts/UserData";
+import axios from "axios";
+import { CONSTANT, camelCaseToNormalString } from "../CONSTANT";
 
 ChartJS.register(
   CategoryScale,
@@ -39,8 +43,36 @@ ChartJS.register(
   Legend
 );
 
+const COLORS = {
+  backgroundColor: [
+    "rgba(255, 99, 132, 0.6)", // Red
+    "rgba(54, 162, 235, 0.6)", // Blue
+    "rgba(255, 206, 86, 0.6)", // Yellow
+    "rgba(75, 192, 192, 0.6)", // Green
+    "rgba(153, 102, 255, 0.6)", // Purple
+    "rgba(255, 159, 64, 0.6)", // Orange
+  ],
+  borderColor: [
+    "rgba(255, 99, 132, 1)", // Red
+    "rgba(54, 162, 235, 1)", // Blue
+    "rgba(255, 206, 86, 1)", // Yellow
+    "rgba(75, 192, 192, 1)", // Green
+    "rgba(153, 102, 255, 1)", // Purple
+    "rgba(255, 159, 64, 1)", // Orange
+  ],
+};
+
 const ToDoList = () => {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState([
+    {
+      completed: false,
+      text: "Register for logistics.",
+    },
+    {
+      completed: false,
+      text: "Send update.",
+    },
+  ]);
   const [newTask, setNewTask] = useState("");
 
   const handleAddTask = () => {
@@ -246,6 +278,29 @@ const RatingCard = () => {
 };
 
 export default function Dashboard() {
+  const [chart, setChart] = useState({
+    pieChart: null,
+    barChart: null,
+  });
+  const { session, setSession } = useContext(UserData);
+
+  const fetchChart = async () => {
+    let to = `api/chart_data_view/${session?.personal?.id}`;
+    await axios
+      .get(CONSTANT.server + to)
+      .then(async (responce) => {
+        setChart(responce?.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  useEffect(() => {
+    if (session.isLoggedIn) {
+      fetchChart();
+    }
+  }, [session]);
+
   return (
     <div className="w-full overflow-hidden">
       <div className="flex w-full flex-row space-x-3">
@@ -256,12 +311,12 @@ export default function Dashboard() {
         />
         <Card
           label="Invoice Due Count"
-          value={"5"}
+          value={<ViewInvoices totalDue />}
           icon={<FaFileInvoice className="fill-accent_2 text-4xl" />}
         />
         <Card
           label="Order That Requires Action"
-          value={"4"}
+          value={<ViewInventories action />}
           icon={<MdError className="fill-accent_2 text-4xl" />}
         />
       </div>
@@ -271,111 +326,46 @@ export default function Dashboard() {
             Orders Analytics
           </dt>
           <div className="overflow-auto w-[40%] m-auto pb-5">
-            <Pie
-              data={{
-                labels: ["Cancelled", "Accepted", "Requested"],
-                datasets: [
-                  {
-                    label: "Orders Analytics",
-                    data: [12, 19, 3],
-                    backgroundColor: [
-                      "rgba(255, 99, 132, 0.6)",
-                      "rgba(54, 162, 235, 0.6)",
-                      "rgba(255, 206, 86, 0.6)",
-                    ],
-                    borderColor: [
-                      "rgba(255, 99, 132, 1)",
-                      "rgba(54, 162, 235, 1)",
-                      "rgba(255, 206, 86, 1)",
-                    ],
-                    borderWidth: 1,
-                  },
-                ],
-              }}
-            />
+            {chart?.pieChart && (
+              <Pie
+                data={{
+                  labels: chart?.pieChart?.labels?.map((a) => {
+                    return camelCaseToNormalString(a);
+                  }),
+                  datasets: [
+                    {
+                      label: "Orders Analytics",
+                      data: chart?.pieChart?.data,
+                      ...COLORS,
+                      borderWidth: 1,
+                    },
+                  ],
+                }}
+              />
+            )}
           </div>
         </div>
-        {/* <div className="w-1/3 mx-auto ">
-          <div className="bg-white shadow-md rounded-lg py-4 px-5">
-            <dt class="mb-5 text-2xl font-extrabold">To-Do List</dt>
-            <div className="mb-4">
-              <input
-                type="text"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                placeholder="Add a new task..."
-              />
-            </div>
-            <div className="divide-y divide-gray-200">
-              <div className="flex items-center justify-between py-2">
-                <span className="text-gray-700">Task 1</span>
-                <input
-                  type="checkbox"
-                  className="form-checkbox h-5 w-5 text-blue-600"
-                />
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-gray-700">Task 2</span>
-                <input
-                  type="checkbox"
-                  className="form-checkbox h-5 w-5 text-blue-600"
-                />
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-gray-700">Task 3</span>
-                <input
-                  type="checkbox"
-                  className="form-checkbox h-5 w-5 text-blue-600"
-                />
-              </div>
-            </div>
-          </div>
-        </div> */}
         <ToDoList />
       </div>
       <div className="relative w-full flex-col shadow-md bg-white rounded-lg py-2 mt-5">
         <dt class="mb-2 mt-5 px-5 text-2xl font-extrabold">FBM Analytics</dt>
         <div className="overflow-auto w-[80%] m-auto pb-5">
-          <Bar
-            data={{
-              labels: [
-                "January",
-                "February",
-                "March",
-                "April",
-                "May",
-                "June",
-                "July",
-                "August",
-                "September",
-                "October",
-                "November",
-                "December",
-              ],
-              datasets: [
-                {
-                  label: "Cancelled Orders",
-                  data: [5, 10, 4, 6, 3, 7, 8, 5, 6, 2, 4, 1], // Sample data for each month
-                  backgroundColor: "rgba(255, 99, 132, 0.6)",
-                  borderColor: "rgba(255, 99, 132, 1)",
-                  borderWidth: 1,
-                },
-                {
-                  label: "Accepted Orders",
-                  data: [15, 20, 10, 16, 13, 17, 18, 15, 16, 12, 14, 11], // Sample data for each month
-                  backgroundColor: "rgba(54, 162, 235, 0.6)",
-                  borderColor: "rgba(54, 162, 235, 1)",
-                  borderWidth: 1,
-                },
-                {
-                  label: "Requested Orders",
-                  data: [8, 7, 5, 9, 6, 8, 7, 6, 5, 4, 3, 2], // Sample data for each month
-                  backgroundColor: "rgba(255, 206, 86, 0.6)",
-                  borderColor: "rgba(255, 206, 86, 1)",
-                  borderWidth: 1,
-                },
-              ],
-            }}
-          />
+          {chart?.barChart && (
+            <Bar
+              data={{
+                labels: chart?.barChart?.labels,
+                datasets: chart?.barChart?.datasets?.map((a, b) => {
+                  return {
+                    ...a,
+                    label: camelCaseToNormalString(a?.label),
+                    backgroundColor: COLORS?.backgroundColor[b],
+                    borderColor: COLORS?.borderColor[b],
+                    borderWidth: 1,
+                  };
+                }),
+              }}
+            />
+          )}
         </div>
       </div>
       {/* <div className="w-full flex flex-row space-x-3 mt-5">

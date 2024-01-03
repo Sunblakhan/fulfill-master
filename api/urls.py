@@ -15,4 +15,6 @@ urlpatterns = [
     path('logistics-registration/<int:user_id>', views.logistics_registration, name='logistics_registration_user'),
     path('invoice', views.invoice, name='invoice'),
     path('invoice/<int:user_id>', views.invoice, name='invoice_user'),
+    path('oneinvoice/<int:user_id>', views.oneinvoice, name='invoice_user'),
+    path('chart_data_view/<int:user_id>', views.chart_data_view, name='chart_data_view'),
 ]

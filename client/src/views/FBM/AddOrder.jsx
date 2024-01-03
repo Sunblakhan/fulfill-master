@@ -166,7 +166,7 @@ export default function AddOrder() {
           </div>
           <InputBox
             type="file"
-            value={payload.product}
+            value={payload.pdf}
             onChange={(e) => {
               setPayload({
                 ...payload,
@@ -178,6 +178,7 @@ export default function AddOrder() {
                 ? "Download Order ID form from amazon and attach your file in .pdf"
                 : "Download and buy shipping label form and add file here"
             }`}
+            accept=".pdf"
           />
           <InputBox
             name="prep"

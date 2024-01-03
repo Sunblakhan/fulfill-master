@@ -12,6 +12,7 @@ import { FaSquareXTwitter } from "react-icons/fa6";
 import { FcGoogle } from "react-icons/fc";
 import { LiaStarSolid } from "react-icons/lia";
 import OrderRequests from "./OrderRequests";
+import ViewInvoices from "./ViewInvoices";
 
 const SocialCard = (props) => {
   return (
@@ -71,7 +72,7 @@ const Card = (props) => {
     <div class="w-full flex flex-col items-center justify-center shadow-md bg-white rounded-lg py-10">
       {props?.icon}
       <dt class="mb-2 mt-5 text-center text-3xl md:text-4xl font-extrabold">
-        {props?.value}
+        {props?.pre && props?.pre}{props?.value}
       </dt>
       <dd class="font-light text-gray-500 dark:text-gray-400">
         {props?.label}
@@ -161,17 +162,18 @@ export default function Dashboard() {
       <div className="flex w-full flex-row space-x-3">
         <Card
           label="Total Inventories Delivered"
-          value={"99"}
+          value={<InventoryRequests totalDelivered />}
           icon={<BsFillInboxesFill className="fill-accent_2 text-4xl" />}
         />
         <Card
           label="Invoice Due Count"
-          value={"5"}
+          value={<ViewInvoices totalDue all />}
           icon={<FaFileInvoice className="fill-accent_2 text-4xl" />}
         />
         <Card
           label="Total Sales"
-          value={"$1024"}
+          pre="$"
+          value={<ViewInvoices totalSales all />}
           icon={<FaSackDollar className="fill-accent_2 text-4xl" />}
         />
       </div>
@@ -192,13 +194,13 @@ export default function Dashboard() {
             </div>
           </div>
           <CardThin
-            label="Active"
-            value={"23"}
+            label="Active Clients"
+            value={<NewClientRequests count={true} />}
             icon={<FaPlay className="fill-accent_1 text-4xl" />}
           />
           <CardThin
-            label="Non Active"
-            value={"9"}
+            label="Non Active Clients"
+            value={"0"}
             icon={<AiFillStop className="fill-accent_1 text-4xl" />}
           />
         </div>
@@ -217,7 +219,7 @@ export default function Dashboard() {
         <div className="w-2/3">
           <div className="relative w-full flex-col shadow-md bg-white rounded-lg py-2">
             <dt class="mb-3 mt-2 px-5 text-xl font-extrabold">
-              Latest Order Requests 
+              Latest Order Requests
             </dt>
             <div className="overflow-auto">
               <OrderRequests onlyTable={true} />

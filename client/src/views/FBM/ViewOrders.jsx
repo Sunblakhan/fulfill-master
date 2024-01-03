@@ -20,12 +20,20 @@ const RenderRow = ({ data }) => {
     <tr className="bg-white border-b dark:border-gray-700">
       <td className="px-6 py-4 sticky left-0 bg-white">
         <span
-          class={`${
-            data?.status === "delivered"
+          className={`${
+            data?.status === "pending"
+              ? "bg-yellow-100 text-yellow-800"
+              : data?.status === "requested"
+              ? "bg-indigo-100 text-indigo-800"
+              : data?.status === "acknowledged"
+              ? "bg-purple-100 text-purple-800"
+              : data?.status === "shipped"
+              ? "bg-blue-100 text-blue-800"
+              : data?.status === "delivered"
               ? "bg-green-100 text-green-800"
-              : ["error"].includes(data?.status)
+              : data?.status === "cancelled"
               ? "bg-red-100 text-red-800"
-              : "bg-blue-100 text-blue-800"
+              : "bg-gray-100 text-gray-800"
           } text-sm font-medium me-2 px-2.5 py-0.5 rounded`}
         >
           {camelCaseToNormalString(data?.status)}
@@ -93,11 +101,15 @@ export default function ViewOrders(props) {
   }, [session]);
 
   if (props?.totalOrders) {
-    return (
-      inventories?.map((a) => {
-        return a?.status === "delivered";
-      }).length || 67
-    );
+    return inventories?.filter((a) => {
+      return a?.status === "delivered";
+    }).length;
+  }
+
+  if (props?.pieChart) {
+    return inventories?.filter((a) => {
+      return a?.status === "delivered";
+    }).length;
   }
 
   return (

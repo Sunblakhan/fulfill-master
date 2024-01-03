@@ -3,8 +3,9 @@
 2. python manage.py createsuperuser (CREATE A SUPER ADMIN CREDENTIALS)  
 3. python manage.py makemigrations  
 4. python manage.py migrate  
-5. python manage.py runserver  
-6. Head to 'http://127.0.0.1:8000/admin', you'll see a login screen, enter SUPER USER password and there you can manage all the data
+5. & ./env/Scripts/Activate.ps1
+6. python manage.py runserver  
+7. Head to 'http://127.0.0.1:8000/admin', you'll see a login screen, enter SUPER USER password and there you can manage all the data
 
 ## SETUP FRONTEND:
 

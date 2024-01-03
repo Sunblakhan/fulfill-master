@@ -19,6 +19,7 @@ import NewClientRequests from "./views/Logistic/NewClientRequests";
 import AddInvoice from "./views/Logistic/AddInvoice";
 import Page404 from "./views/Page404";
 import ViewInvoices from "./views/Logistic/ViewInvoices";
+import InvoiceCard from "./views/InvoiceCard";
 
 function App() {
   return (
@@ -136,6 +137,14 @@ function App() {
             element={
               <Layout>
                 <ViewInvoices />
+              </Layout>
+            }
+          />
+          <Route
+            path="/seeInvoice/:id"
+            element={
+              <Layout>
+                <InvoiceCard />
               </Layout>
             }
           />

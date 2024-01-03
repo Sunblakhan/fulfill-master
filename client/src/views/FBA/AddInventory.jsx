@@ -8,7 +8,6 @@ import InputBox from "../../components/InputBox";
 import CustomButton from "../../components/CustomButton";
 import { FaRocket } from "react-icons/fa";
 
-
 export default function AddInventory() {
   const { session, setSession } = useContext(UserData);
   let navigate = useNavigate();
@@ -33,26 +32,20 @@ export default function AddInventory() {
 
   const [warehouses, setWarehouses] = useState([]);
 
-  const fetchWarehouses = async (select = "") => {
+  const fetchWarehouses = async () => {
     await axios
-      .get(CONSTANT.server + `api/warehouses/${session?.personal?.id}`)
+      .get(
+        CONSTANT.server + `api/logistics-registration/${session?.personal?.id}`
+      )
       .then(async (responce) => {
         setWarehouses(
-          responce?.data?.map((a, b) => {
-            if (select === a?.name) {
-              setPayload({
-                ...payload,
-                warehouse: {
-                  value: a?.id,
-                  label: a?.name,
-                },
-              });
-            }
-            return {
-              value: a?.id,
-              label: a?.name,
-            };
-          })
+          responce?.data
+            ?.filter((a, b) => {
+              return a.status === "approve";
+            })
+            .map((a) => {
+              return a?.warehouse;
+            })
         );
       })
       .catch((error) => {
@@ -60,18 +53,18 @@ export default function AddInventory() {
       });
   };
 
-  const addWarehouse = async (name) => {
-    await axios
-      .post(CONSTANT.server + `api/warehouses/${session?.personal?.id}`, {
-        name: name,
-      })
-      .then(async (responce) => {
-        fetchWarehouses(name);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
+  // const addWarehouse = async (name) => {
+  //   await axios
+  //     .post(CONSTANT.server + `api/warehouses/${session?.personal?.id}`, {
+  //       name: name,
+  //     })
+  //     .then(async (responce) => {
+  //       fetchWarehouses(name);
+  //     })
+  //     .catch((error) => {
+  //       console.log(error);
+  //     });
+  // };
 
   useEffect(() => {
     if (session.isLoggedIn) {
@@ -101,7 +94,7 @@ export default function AddInventory() {
                       `api/fba-inventory-requests/${session?.personal?.id}`,
                     {
                       ...payload,
-                      warehouse: payload.warehouse?.value,
+                      warehouse: parseInt(payload.warehouse),
                     }
                   )
                   .then(async (responce) => {
@@ -144,7 +137,7 @@ export default function AddInventory() {
       </h1>
       <div>
         <div className="flex flex-col space-y-4">
-          <div className="sm:col-span-2">
+          {/* <div className="sm:col-span-2">
             <label
               htmlFor="warehouse"
               className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -169,7 +162,26 @@ export default function AddInventory() {
               className="text-gray-900 text-sm rounded-lg block w-full"
               required
             />
-          </div>
+          </div> */}
+          <InputBox
+            type="select"
+            name="warehouse"
+            label="Warehouse"
+            value={payload.warehouse}
+            onChange={changePayload}
+            options={[
+              {
+                id: "",
+                name: "Select client",
+              },
+              ...warehouses.map((a) => {
+                return {
+                  id: a?.id,
+                  name: `${a?.name} (${a?.email})`,
+                };
+              }),
+            ]}
+          />
           <div className="flex flex-row space-x-2">
             <InputBox
               type="number"

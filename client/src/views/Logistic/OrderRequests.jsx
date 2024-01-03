@@ -19,8 +19,9 @@ import { FaShippingFast } from "react-icons/fa";
 import { MdDoneAll } from "react-icons/md";
 import { SlOptionsVertical } from "react-icons/sl";
 import { MdClose } from "react-icons/md";
+import { TiCancel } from "react-icons/ti";
 
-const RenderRow = ({ data, isEdit, setIsEdit, updateStatus }) => {
+const RenderRow = ({ data, isEdit, setIsEdit, updateStatus, onlyTable }) => {
   const [options, setOptions] = useState(false);
 
   const [openDesc, setOpenDesc] = useState(false);
@@ -29,12 +30,20 @@ const RenderRow = ({ data, isEdit, setIsEdit, updateStatus }) => {
     <tr className="bg-white border-b dark:border-gray-700">
       <td className="px-6 py-4 sticky left-0 bg-white">
         <span
-          class={`${
-            data?.status === "delivered"
+          className={`${
+            data?.status === "pending"
+              ? "bg-yellow-100 text-yellow-800"
+              : data?.status === "requested"
+              ? "bg-indigo-100 text-indigo-800"
+              : data?.status === "acknowledged"
+              ? "bg-purple-100 text-purple-800"
+              : data?.status === "shipped"
+              ? "bg-blue-100 text-blue-800"
+              : data?.status === "delivered"
               ? "bg-green-100 text-green-800"
-              : ["error"].includes(data?.status)
+              : data?.status === "cancelled"
               ? "bg-red-100 text-red-800"
-              : "bg-blue-100 text-blue-800"
+              : "bg-gray-100 text-gray-800"
           } text-sm font-medium me-2 px-2.5 py-0.5 rounded`}
         >
           {camelCaseToNormalString(data?.status)}
@@ -58,16 +67,17 @@ const RenderRow = ({ data, isEdit, setIsEdit, updateStatus }) => {
       </th>
       <td className="px-6 py-4">{camelCaseToNormalString(data?.labelType)}</td>
       <td className="px-6 py-4">
-        {" "}
-        <span
-          onClick={() => {
-            const pdfUrl = `${CONSTANT.server}${data?.pdf}`;
-            window.open(pdfUrl, "_blank", "noopener,noreferrer");
-          }}
-          className="cursor-pointer text-indigo-500 smooth-transition hover:text-indigo-300"
-        >
-          Preview PDF
-        </span>
+        {data?.pdf && (
+          <span
+            onClick={() => {
+              const pdfUrl = `${CONSTANT.server}${data?.pdf}`;
+              window.open(pdfUrl, "_blank", "noopener,noreferrer");
+            }}
+            className="cursor-pointer text-indigo-500 smooth-transition hover:text-indigo-300"
+          >
+            Preview PDF
+          </span>
+        )}
       </td>
       <td
         className="px-6 py-4 cursor-pointer hover:text-gray-500"
@@ -86,76 +96,93 @@ const RenderRow = ({ data, isEdit, setIsEdit, updateStatus }) => {
       <td className="px-6 py-4">
         {new Date(data?.timestamp)?.toLocaleString()}
       </td>
-      <td className="px-6 py-4 sticky right-0 bg-white">
-        <div className="relative flex items-center">
-          <span
-            className="bg-transparent smooth-transition hover:bg-slate-100 p-2.5 rounded-full cursor-pointer"
-            onClick={() => {
-              setOptions(!options);
-            }}
-          >
-            {options ? (
-              <MdClose color="black" className="z-0 relative scale-125" />
-            ) : (
-              <SlOptionsVertical color="black" className="z-0 relative" />
+      {!onlyTable && (
+        <td className="px-6 py-4 sticky right-0 bg-white">
+          <div className="relative flex items-center">
+            <span
+              className="bg-transparent smooth-transition hover:bg-slate-100 p-2.5 rounded-full cursor-pointer"
+              onClick={() => {
+                setOptions(!options);
+              }}
+            >
+              {options ? (
+                <MdClose color="black" className="z-0 relative scale-125" />
+              ) : (
+                <SlOptionsVertical color="black" className="z-0 relative" />
+              )}
+            </span>
+            {options && (
+              <div className="ml-2 flex flex-row space-x-2 cursor-pointer">
+                <Tooltip anchorSelect="#acknowledged" place="top">
+                  Acknowledged
+                </Tooltip>
+                <Tooltip anchorSelect="#shipped" place="top">
+                  Shipped
+                </Tooltip>
+                <Tooltip anchorSelect="#delivered" place="top">
+                  Delivered
+                </Tooltip>
+                <Tooltip anchorSelect="#cancel" place="top">
+                  Cancel
+                </Tooltip>
+                <span
+                  onClick={(e) => {
+                    updateStatus(e, {
+                      id: data?.id,
+                      status: "acknowledged",
+                    });
+                  }}
+                  id="acknowledged"
+                  className="rounded-lg px-2 flex items-center bg-yellow-500"
+                >
+                  <MdDoneAll color="white" className="w-5 scale-125" />
+                </span>
+                <span
+                  onClick={(e) => {
+                    //   updateStatus(e, {
+                    //     id: data?.id,
+                    //     status: "delivered",
+                    //   });
+                    setIsEdit({
+                      ...isEdit,
+                      id: data?.id,
+                      open: true,
+                    });
+                  }}
+                  id="shipped"
+                  className="rounded-lg p-2 bg-green-500"
+                >
+                  <FaShippingFast color="white" className="w-5" />
+                </span>
+                <span
+                  onClick={(e) => {
+                    updateStatus(e, {
+                      id: data?.id,
+                      status: "delivered",
+                    });
+                  }}
+                  id="delivered"
+                  className="rounded-lg p-2 bg-blue-500"
+                >
+                  <GrDeliver color="white" className="w-5" />
+                </span>
+                <span
+                  onClick={(e) => {
+                    updateStatus(e, {
+                      id: data?.id,
+                      status: "cancelled",
+                    });
+                  }}
+                  id="cancel"
+                  className="rounded-lg p-2 bg-red-500"
+                >
+                  <TiCancel color="white" className="w-5 scale-150" />
+                </span>
+              </div>
             )}
-          </span>
-          {options && (
-            <div className="ml-2 flex flex-row space-x-2 cursor-pointer">
-              <Tooltip anchorSelect="#acknowledged" place="top">
-                Acknowledged
-              </Tooltip>
-              <Tooltip anchorSelect="#shipped" place="top">
-                Shipped
-              </Tooltip>
-              <Tooltip anchorSelect="#delivered" place="top">
-                Delivered
-              </Tooltip>
-              <span
-                onClick={(e) => {
-                  updateStatus(e, {
-                    id: data?.id,
-                    status: "acknowledged",
-                  });
-                }}
-                id="acknowledged"
-                className="rounded-lg px-2 flex items-center bg-yellow-500"
-              >
-                <MdDoneAll color="white" className="w-5 scale-125" />
-              </span>
-              <span
-                onClick={(e) => {
-                  //   updateStatus(e, {
-                  //     id: data?.id,
-                  //     status: "delivered",
-                  //   });
-                  setIsEdit({
-                    ...isEdit,
-                    id: data?.id,
-                    open: true,
-                  });
-                }}
-                id="shipped"
-                className="rounded-lg p-2 bg-green-500"
-              >
-                <FaShippingFast color="white" className="w-5" />
-              </span>
-              <span
-                onClick={(e) => {
-                  updateStatus(e, {
-                    id: data?.id,
-                    status: "delivered",
-                  });
-                }}
-                id="delivered"
-                className="rounded-lg p-2 bg-blue-500"
-              >
-                <GrDeliver color="white" className="w-5" />
-              </span>
-            </div>
-          )}
-        </div>
-      </td>
+          </div>
+        </td>
+      )}
     </tr>
   );
 };
@@ -169,7 +196,13 @@ export default function OrderRequests(props) {
     await axios
       .get(CONSTANT.server + `api/fbm-orders`)
       .then(async (responce) => {
-        setInventories(responce?.data);
+        setInventories(
+          responce?.data?.filter((a, b) => {
+            return (
+              parseInt(a?.product?.warehouse?.id) === session?.personal?.id
+            );
+          })
+        );
       })
       .catch((error) => {
         console.log(error);
@@ -243,9 +276,6 @@ export default function OrderRequests(props) {
             <th scope="col" className="px-6 py-3">
               Timestamp
             </th>
-            <th scope="col" className="px-6 py-3 sticky right-0 bg-black h-fit">
-              Options
-            </th>
           </tr>
         </thead>
         <tbody className="text-left whitespace-nowrap">
@@ -256,6 +286,7 @@ export default function OrderRequests(props) {
                 setIsEdit={setIsEdit}
                 isEdit={isEdit}
                 updateStatus={updateStatus}
+                onlyTable={props?.onlyTable}
               />
             );
           })}

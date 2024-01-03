@@ -21,6 +21,7 @@ import { SlOptionsVertical } from "react-icons/sl";
 import { MdClose } from "react-icons/md";
 import { MdDoneOutline } from "react-icons/md";
 import { TiCancel } from "react-icons/ti";
+import { GrUpdate } from "react-icons/gr";
 
 const RenderRow = ({ data, isEdit, setIsEdit, updateStatus }) => {
   const [options, setOptions] = useState(false);
@@ -42,17 +43,26 @@ const RenderRow = ({ data, isEdit, setIsEdit, updateStatus }) => {
       </td>
       <td className="px-6 py-4 sticky left-0 bg-white">
         <span
-          class={`${
-            data?.status === "accepted"
+          className={`${
+            data?.status === "pending"
+              ? "bg-yellow-100 text-yellow-800"
+              : data?.status === "requested"
+              ? "bg-indigo-100 text-indigo-800"
+              : data?.status === "acknowledged"
+              ? "bg-purple-100 text-purple-800"
+              : data?.status === "shipped"
+              ? "bg-blue-100 text-blue-800"
+              : data?.status === "delivered"
               ? "bg-green-100 text-green-800"
-              : ["cancelled", "declined", "error"].includes(data?.status)
+              : data?.status === "cancelled"
               ? "bg-red-100 text-red-800"
-              : "bg-blue-100 text-blue-800"
+              : "bg-gray-100 text-gray-800"
           } text-sm font-medium me-2 px-2.5 py-0.5 rounded`}
         >
           {camelCaseToNormalString(data?.status)}
         </span>
       </td>
+      <td className="px-6 py-4">{data?.logisticsComments || "-"}</td>
       <th
         scope="row"
         className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap"
@@ -86,6 +96,19 @@ const RenderRow = ({ data, isEdit, setIsEdit, updateStatus }) => {
             : data?.comments
           : `${data?.comments.slice(0, 40)}...`}
       </td>
+      <td className="px-6 py-4">
+        {data?.pdf && (
+          <span
+            onClick={() => {
+              const pdfUrl = `${CONSTANT.server}${data?.pdf}`;
+              window.open(pdfUrl, "_blank", "noopener,noreferrer");
+            }}
+            className="cursor-pointer text-indigo-500 smooth-transition hover:text-indigo-300"
+          >
+            Preview PDF
+          </span>
+        )}
+      </td>
       <td className="px-6 py-4">{data?.trackingNumber || "-"}</td>
       <td className="px-6 py-4">
         {new Date(data?.timestamp)?.toLocaleString()}
@@ -109,11 +132,17 @@ const RenderRow = ({ data, isEdit, setIsEdit, updateStatus }) => {
               <Tooltip anchorSelect="#inventoryReceived" place="top">
                 Inventory Received
               </Tooltip>
-              <Tooltip anchorSelect="#accepted" place="top">
-                Accepted
+              <Tooltip anchorSelect="#request" place="top">
+                Request
               </Tooltip>
-              <Tooltip anchorSelect="#cancelled" place="top">
-                Cancelled
+              <Tooltip anchorSelect="#shipped" place="top">
+                Shipped
+              </Tooltip>
+              <Tooltip anchorSelect="#delivered" place="top">
+                Delivered
+              </Tooltip>
+              <Tooltip anchorSelect="#cancel" place="top">
+                Cancel
               </Tooltip>
               <span
                 onClick={(e) => {
@@ -128,17 +157,50 @@ const RenderRow = ({ data, isEdit, setIsEdit, updateStatus }) => {
                 <MdDoneAll color="white" className="w-5 scale-125" />
               </span>
               <span
+                // onClick={(e) => {
+                //   updateStatus(e, {
+                //     id: data?.id,
+                //     status: "requested",
+                //   });
+                // }}
                 onClick={(e) => {
                   setIsEdit({
                     ...isEdit,
                     id: data?.id,
                     open: true,
+                    type: "requested",
                   });
                 }}
-                id="accepted"
+                id="request"
+                className="rounded-lg px-2 flex items-center bg-indigo-500"
+              >
+                <GrUpdate color="white" className="w-5 scale-125" />
+              </span>
+              <span
+                onClick={(e) => {
+                  setIsEdit({
+                    ...isEdit,
+                    id: data?.id,
+                    open: true,
+                    type: "shipped",
+                  });
+                }}
+                id="shipped"
                 className="rounded-lg p-2 bg-green-500"
               >
-                <MdDoneOutline color="white" className="w-5" />
+                <FaShippingFast color="white" className="w-5" />
+              </span>
+              <span
+                onClick={(e) => {
+                  updateStatus(e, {
+                    id: data?.id,
+                    status: "delivered",
+                  });
+                }}
+                id="delivered"
+                className="rounded-lg p-2 bg-blue-500"
+              >
+                <GrDeliver color="white" className="w-5" />
               </span>
               <span
                 onClick={(e) => {
@@ -147,10 +209,10 @@ const RenderRow = ({ data, isEdit, setIsEdit, updateStatus }) => {
                     status: "cancelled",
                   });
                 }}
-                id="cancelled"
+                id="cancel"
                 className="rounded-lg p-2 bg-red-500"
               >
-                <TiCancel color="white" className="w-5 scale-125" />
+                <TiCancel color="white" className="w-5 scale-150" />
               </span>
             </div>
           )}
@@ -199,7 +261,11 @@ export default function InventoryRequests(props) {
     await axios
       .get(CONSTANT.server + `api/fba-inventory-requests`)
       .then(async (responce) => {
-        setInventories(responce?.data);
+        setInventories(
+          responce?.data?.filter((a, b) => {
+            return parseInt(a?.warehouse?.id) === session?.personal?.id;
+          })
+        );
       })
       .catch((error) => {
         console.log(error);
@@ -216,6 +282,7 @@ export default function InventoryRequests(props) {
     open: false,
     value: "",
     id: null,
+    type: "",
   });
 
   const updateStatus = async (e, __payload = {}) => {
@@ -230,10 +297,6 @@ export default function InventoryRequests(props) {
           setMessage(responce?.message, "red-500");
         } else {
           fetchInventories();
-          //   setIsEdit({
-          //     ...isEdit,
-          //     open: false,
-          //   });
         }
       })
       .catch((error) => {
@@ -258,7 +321,7 @@ export default function InventoryRequests(props) {
           </tr>
         </thead>
         <tbody className="text-left whitespace-nowrap">
-          {inventories?.slice(0,3)?.map((a, b) => {
+          {inventories?.slice(0, 3)?.map((a, b) => {
             return (
               <RenderRow2
                 data={a}
@@ -273,6 +336,12 @@ export default function InventoryRequests(props) {
     );
   }
 
+  if (props?.totalDelivered) {
+    return inventories?.filter((a) => {
+      return a?.status === "delivered";
+    }).length;
+  }
+
   return (
     <div className="w-full">
       <ModalWrapper
@@ -284,40 +353,80 @@ export default function InventoryRequests(props) {
           });
         }}
       >
-        <div className="w-full">
-          <h1 class="mb-5 text-center text-4xl font-extrabold tracking-tight text-black">
-            Tracking Number
-          </h1>
-          <InputBox
-            type="text"
-            value={isEdit.value}
-            onChange={(e) => {
-              setIsEdit({
-                ...isEdit,
-                value: e.target.value,
-              });
-            }}
-            label=""
-            placeholder="Enter tracking number"
-          />
-          <CustomButton
-            className="mt-5"
-            label="Update"
-            onClick={(e) => {
-              updateStatus(e, {
-                id: isEdit?.id,
-                status: "accepted",
-                trackingNumber: isEdit?.value,
-              });
-              setIsEdit({
-                open: false,
-                value: "",
-                id: null,
-              });
-            }}
-            icon={<FaRocket />}
-          />
-        </div>
+        {isEdit.type === "shipped" && (
+          <div className="w-full">
+            <h1 class="mb-5 text-center text-4xl font-extrabold tracking-tight text-black">
+              Tracking Number
+            </h1>
+            <InputBox
+              type="text"
+              value={isEdit.value}
+              onChange={(e) => {
+                setIsEdit({
+                  ...isEdit,
+                  value: e.target.value,
+                });
+              }}
+              label=""
+              placeholder="Enter tracking number"
+            />
+            <CustomButton
+              className="mt-5"
+              label="Update"
+              onClick={(e) => {
+                updateStatus(e, {
+                  id: isEdit?.id,
+                  status: "shipped",
+                  trackingNumber: isEdit?.value,
+                });
+                setIsEdit({
+                  open: false,
+                  value: "",
+                  id: null,
+                  type: "",
+                });
+              }}
+              icon={<FaRocket />}
+            />
+          </div>
+        )}
+        {isEdit.type === "requested" && (
+          <div className="w-full">
+            <h1 class="mb-5 text-center text-4xl font-extrabold tracking-tight text-black">
+              Make Request
+            </h1>
+            <InputBox
+              type="textarea"
+              value={isEdit.value}
+              onChange={(e) => {
+                setIsEdit({
+                  ...isEdit,
+                  value: e.target.value,
+                });
+              }}
+              label=""
+              placeholder="Enter remarks"
+            />
+            <CustomButton
+              className="mt-5"
+              label="Update"
+              onClick={(e) => {
+                updateStatus(e, {
+                  id: isEdit?.id,
+                  status: "requested",
+                  logisticsComments: isEdit?.value,
+                });
+                setIsEdit({
+                  open: false,
+                  value: "",
+                  id: null,
+                  type: "",
+                });
+              }}
+              icon={<FaRocket />}
+            />
+          </div>
+        )}
       </ModalWrapper>
       <h1 class="text-center mb-5 text-4xl font-extrabold tracking-tight text-black">
         Inventory Requests
@@ -334,6 +443,9 @@ export default function InventoryRequests(props) {
                 className="px-6 py-3 sticky left-0 bg-black h-fit"
               >
                 Inventory Status
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Remarks
               </th>
               <th scope="col" className="px-6 py-3">
                 Client
@@ -358,6 +470,9 @@ export default function InventoryRequests(props) {
               </th>
               <th scope="col" className="px-6 py-3">
                 Prep Comments
+              </th>
+              <th scope="col" className="px-6 py-3">
+                PDF
               </th>
               <th scope="col" className="px-6 py-3">
                 Tracking Number
@@ -388,7 +503,7 @@ export default function InventoryRequests(props) {
         </table>
         {inventories?.length <= 0 && (
           <div className="mt-5 pb-5 w-full flex items-center justify-center">
-            No order requests yet.
+            No inventory requests yet.
           </div>
         )}
       </div>

@@ -12,6 +12,7 @@ export default function LogisticsRegistration() {
   const { session, setSession } = useContext(UserData);
   let navigate = useNavigate();
   const init__payload = {
+    warehouse: "",
     name: "",
     email: "",
     phone: "",
@@ -36,6 +37,11 @@ export default function LogisticsRegistration() {
     resetMessage();
 
     // Validate name
+    if (!payload.warehouse) {
+      setMessage("Please select a warehouse.", "red-500");
+      return;
+    }
+    // Validate name
     if (payload.name.trim() === "") {
       setMessage("Please enter a name.", "red-500");
       return;
@@ -44,6 +50,12 @@ export default function LogisticsRegistration() {
     // Validate email
     if (payload.email.trim() === "") {
       setMessage("Please enter an email address.", "red-500");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(payload.email.trim())) {
+      setMessage("Please enter a valid email address.", "red-500");
       return;
     }
 
@@ -77,6 +89,12 @@ export default function LogisticsRegistration() {
       return;
     }
 
+    // Validate type
+    if (payload.type === "oa" && !payload?.minimumInventory) {
+      setMessage("Please select a minimum inventory.", "red-500");
+      return;
+    }
+
     // All validations passed, proceed with adding inventory
     await axios
       .post(
@@ -97,6 +115,34 @@ export default function LogisticsRegistration() {
       });
   };
 
+  const [users, setUsers] = useState([]);
+
+  const fetchUsers = async () => {
+    await axios
+      .get(CONSTANT.server + `authentication/user`)
+      .then(async (responce) => {
+        let temp = [];
+        responce?.data?.map((a, b) => {
+          if (a?.mode === "seller") {
+            return;
+          }
+          temp.push({
+            ...a,
+          });
+        });
+        setUsers(temp);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  useEffect(() => {
+    if (session?.isLoggedIn) {
+      fetchUsers();
+    }
+  }, [session]);
+
   return (
     <div className="w-full">
       <h1 class="mb-5 text-center text-4xl font-extrabold tracking-tight text-black md:text-5xl lg:text-6xl">
@@ -107,6 +153,25 @@ export default function LogisticsRegistration() {
       </h1>
       <div>
         <div className="w-full flex flex-col space-y-3">
+          <InputBox
+            type="select"
+            name="warehouse"
+            label="Warehouse"
+            value={payload.warehouse}
+            onChange={changePayload}
+            options={[
+              {
+                id: "",
+                name: "Select warehouse",
+              },
+              ...users.map((a) => {
+                return {
+                  id: a?.id,
+                  name: `${a?.name} (${a?.email})`,
+                };
+              }),
+            ]}
+          />
           <InputBox
             type="text"
             name="name"

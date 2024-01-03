@@ -24,11 +24,19 @@ class FBAInventoryRequestSerializer(serializers.ModelSerializer):
 
 class ViewFBAInventoryRequestSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer()
-    warehouse = ViewWarehousesSerializer()
+    warehouse = CustomUserSerializer()
 
     class Meta:
         model = models.FBAInventoryRequest
         fields = "__all__"
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if "pdf" in representation and representation["pdf"]:
+            representation["pdf"] = representation["pdf"].replace(
+                "/orders", "assets"
+            )
+        return representation
 
 
 class FBMInventoryRequestSerializer(serializers.ModelSerializer):
@@ -38,7 +46,7 @@ class FBMInventoryRequestSerializer(serializers.ModelSerializer):
 
 
 class ViewFBMInventoryRequestSerializer(serializers.ModelSerializer):
-    warehouse = ViewWarehousesSerializer()
+    warehouse = CustomUserSerializer()
 
     class Meta:
         model = models.FBMInventoryRequest
@@ -53,7 +61,7 @@ class FBMOrdersSerializer(serializers.ModelSerializer):
 
 class ViewFBMOrdersSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer()
-    product = FBMInventoryRequestSerializer()
+    product = ViewFBMInventoryRequestSerializer()
 
     class Meta:
         model = models.Order
@@ -75,6 +83,7 @@ class LogisticsRegistrationSerializer(serializers.ModelSerializer):
 
 
 class ViewLogisticsRegistrationSerializer(serializers.ModelSerializer):
+    warehouse = CustomUserSerializer()
     user = CustomUserSerializer()
 
     class Meta:

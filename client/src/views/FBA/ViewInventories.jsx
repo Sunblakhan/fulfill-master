@@ -12,9 +12,14 @@ import ModalWrapper from "../../components/ModalWrapper";
 import InputBox from "../../components/InputBox";
 import CustomButton from "../../components/CustomButton";
 import { MdModeEditOutline } from "react-icons/md";
+import { SlOptionsVertical } from "react-icons/sl";
 import { FaRocket } from "react-icons/fa";
+import { MdClose } from "react-icons/md";
+import { TiCancel } from "react-icons/ti";
+import { Tooltip } from "react-tooltip";
 
-const RenderRow = ({ data, setIsEdit }) => {
+const RenderRow = ({ data, setIsEdit, deleteInventory }) => {
+  const [options, setOptions] = useState(false);
   const [openDesc, setOpenDesc] = useState(false);
   return (
     <tr className="bg-white border-b dark:border-gray-700">
@@ -31,17 +36,26 @@ const RenderRow = ({ data, setIsEdit }) => {
       </td>
       <td className="px-6 py-4 sticky left-0 bg-white">
         <span
-          class={`${
-            data?.status === "accepted"
+          className={`${
+            data?.status === "pending"
+              ? "bg-yellow-100 text-yellow-800"
+              : data?.status === "requested"
+              ? "bg-indigo-100 text-indigo-800"
+              : data?.status === "acknowledged"
+              ? "bg-purple-100 text-purple-800"
+              : data?.status === "shipped"
+              ? "bg-blue-100 text-blue-800"
+              : data?.status === "delivered"
               ? "bg-green-100 text-green-800"
-              : ["cancelled", "declined", "error"].includes(data?.status)
+              : data?.status === "cancelled"
               ? "bg-red-100 text-red-800"
-              : "bg-blue-100 text-blue-800"
+              : "bg-gray-100 text-gray-800"
           } text-sm font-medium me-2 px-2.5 py-0.5 rounded`}
         >
           {camelCaseToNormalString(data?.status)}
         </span>
       </td>
+      <td className="px-6 py-4">{data?.logisticsComments || "-"}</td>
       <th
         scope="row"
         className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
@@ -66,9 +80,70 @@ const RenderRow = ({ data, setIsEdit }) => {
           : `${data?.comments.slice(0, 40)}...`}
       </td>
       <td className="px-6 py-4">
+        {data?.pdf && (
+          <span
+            onClick={() => {
+              const pdfUrl = `${CONSTANT.server}${data?.pdf}`;
+              window.open(pdfUrl, "_blank", "noopener,noreferrer");
+            }}
+            className="cursor-pointer text-indigo-500 smooth-transition hover:text-indigo-300"
+          >
+            Preview PDF
+          </span>
+        )}
+      </td>
+      <td className="px-6 py-4">
         {new Date(data?.timestamp)?.toLocaleString()}
       </td>
-      <td className="px-6 py-4 sticky right-0 bg-white text-center">
+      <td className="px-6 py-4 sticky right-0 bg-white">
+        <div className="relative flex items-center">
+          <span
+            className="bg-transparent smooth-transition hover:bg-slate-100 p-2.5 rounded-full cursor-pointer"
+            onClick={() => {
+              setOptions(!options);
+            }}
+          >
+            {options ? (
+              <MdClose color="black" className="z-0 relative scale-125" />
+            ) : (
+              <SlOptionsVertical color="black" className="z-0 relative" />
+            )}
+          </span>
+          {options && (
+            <div className="ml-2 flex flex-row space-x-2 cursor-pointer">
+              <Tooltip anchorSelect="#edit" place="top">
+                Edit
+              </Tooltip>
+              <Tooltip anchorSelect="#delete" place="top">
+                Delete
+              </Tooltip>
+              <span
+                onClick={(e) => {
+                  setIsEdit({
+                    value: data?.comments,
+                    id: data?.id,
+                    open: true,
+                  });
+                }}
+                id="edit"
+                className="rounded-lg p-2 bg-blue-500"
+              >
+                <MdModeEditOutline color="white" className="w-5" />
+              </span>
+              <span
+                onClick={(e) => {
+                  deleteInventory(data?.id);
+                }}
+                id="delete"
+                className="rounded-lg p-2 bg-red-500"
+              >
+                <TiCancel color="white" className="w-5 scale-150" />
+              </span>
+            </div>
+          )}
+        </div>
+      </td>
+      {/* <td className="px-6 py-4 sticky right-0 bg-white text-center">
         <span
           className="font-bold text-black cursor-pointer flex flex-row items-center justify-center"
           onClick={() => {
@@ -82,7 +157,7 @@ const RenderRow = ({ data, setIsEdit }) => {
           <MdModeEditOutline className="mr-1" />
           <span className="md:block hidden">Edit</span>
         </span>
-      </td>
+      </td> */}
     </tr>
   );
 };
@@ -114,18 +189,33 @@ export default function ViewInventories(props) {
   const [isEdit, setIsEdit] = useState({
     open: false,
     value: "",
+    pdf: null,
   });
 
   const updateInventory = async (e) => {
     e.preventDefault();
     resetMessage();
-    // Validate warehouse
+    if (!isEdit.value) {
+      setMessage("Please add comments.", "red-500");
+      return;
+    }
+    if (!isEdit.pdf) {
+      setMessage("Please upload a PDF.", "red-500");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("id", isEdit.id);
+    formData.append("comments", isEdit.value);
+    formData.append("pdf", isEdit.pdf);
+    formData.append("status", "pending");
     await axios
       .put(
         CONSTANT.server + `api/fba-inventory-requests/${session?.personal?.id}`,
+        formData,
         {
-          id: isEdit.id,
-          comments: isEdit.value,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
       )
       .then(async (responce) => {
@@ -144,6 +234,23 @@ export default function ViewInventories(props) {
       });
   };
 
+  const deleteInventory = async (id) => {
+    await axios
+      .delete(CONSTANT.server + `api/fba-inventory-requests/${id}`)
+      .then(async (responce) => {
+        fetchInventories();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  if (props?.action) {
+    return inventories?.filter((a) => {
+      return a?.status === "requested";
+    }).length;
+  }
+
   return (
     <div className="w-full">
       <ModalWrapper
@@ -157,7 +264,7 @@ export default function ViewInventories(props) {
       >
         <div className="w-full">
           <h1 class="mb-5 text-center text-4xl font-extrabold tracking-tight text-black">
-            Edit Prep Comments
+            Update Request
           </h1>
           <InputBox
             name="comments"
@@ -172,12 +279,26 @@ export default function ViewInventories(props) {
             label=""
             placeholder="Your comments here"
           />
+          <div className="py-3"></div>
+          <InputBox
+            type="file"
+            value={isEdit.pdf}
+            onChange={(e) => {
+              setIsEdit({
+                ...isEdit,
+                pdf: e.target.files[0],
+              });
+            }}
+            label={`Attach updated label.`}
+            accept=".pdf"
+          />
           <CustomButton
             className="mt-5"
             label="Update"
             onClick={updateInventory}
             icon={<FaRocket />}
           />
+          <div className="my-10" id="error" style={{ display: "none" }}></div>
         </div>
       </ModalWrapper>
       <h1 class="mb-5 text-center text-4xl font-extrabold tracking-tight text-black md:text-5xl lg:text-6xl">
@@ -198,6 +319,9 @@ export default function ViewInventories(props) {
                 className="px-6 py-3 sticky left-0 bg-black h-fit"
               >
                 Inventory Status
+              </th>
+              <th scope="col" className="px-6 py-3">
+                Remarks
               </th>
               <th scope="col" className="px-6 py-3">
                 Warehouse
@@ -221,6 +345,9 @@ export default function ViewInventories(props) {
                 Prep Comments
               </th>
               <th scope="col" className="px-6 py-3">
+                PDF
+              </th>
+              <th scope="col" className="px-6 py-3">
                 Timestamp
               </th>
               <th
@@ -233,7 +360,13 @@ export default function ViewInventories(props) {
           </thead>
           <tbody className="text-left whitespace-nowrap">
             {inventories?.map((a, b) => {
-              return <RenderRow data={a} setIsEdit={setIsEdit} />;
+              return (
+                <RenderRow
+                  data={a}
+                  setIsEdit={setIsEdit}
+                  deleteInventory={deleteInventory}
+                />
+              );
             })}
           </tbody>
         </table>

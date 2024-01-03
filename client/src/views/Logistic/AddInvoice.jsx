@@ -44,18 +44,16 @@ export default function AddInvoice() {
 
   const fetchWarehouses = async () => {
     await axios
-      .get(CONSTANT.server + `authentication/user`)
+      .get(CONSTANT.server + `api/logistics-registration`)
       .then(async (responce) => {
-        let temp = [];
-        responce?.data?.map((a, b) => {
-          if (session?.personal?.id === a?.id) {
-            return;
-          }
-          temp.push({
-            ...a,
-          });
-        });
-        setWarehouses(temp);
+        setWarehouses(
+          responce?.data?.filter((a, b) => {
+            return (
+              parseInt(a?.warehouse?.id) === session?.personal?.id &&
+              a?.status === "approve"
+            );
+          })
+        );
       })
       .catch((error) => {
         console.log(error);
@@ -170,8 +168,12 @@ export default function AddInvoice() {
           </div>
           <div class="text-gray-700">
             <div class="font-bold text-xl mb-2">INVOICE</div>
-            <div class="text-sm">Date: 01/05/2023</div>
-            <div class="text-sm">Invoice #: 67889</div>
+            <div className="text-sm">
+              Date: {new Date().toLocaleDateString()}
+            </div>
+            <div className="text-sm">
+              Invoice #: {Math.floor(Math.random() * 1000) + 1}
+            </div>
           </div>
         </div>
         <div className="my-10" id="error" style={{ display: "none" }}></div>
@@ -185,12 +187,12 @@ export default function AddInvoice() {
             options={[
               {
                 id: "",
-                name: "Select Client",
+                name: "Select client",
               },
               ...warehouses.map((a) => {
                 return {
                   id: a?.id,
-                  name: a?.email,
+                  name: `${a?.name} (${a?.email})`,
                 };
               }),
             ]}

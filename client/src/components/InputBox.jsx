@@ -134,6 +134,7 @@ export default function InputBox(props) {
           id={props?.name}
           onChange={props?.onChange}
           type="file"
+          accept={props?.accept}
         />
       </div>
     );
