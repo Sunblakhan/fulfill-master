@@ -11,10 +11,16 @@ import {
 import CustomButton from "../components/CustomButton";
 import InputBox from "../components/InputBox";
 import { SiGnuprivacyguard } from "react-icons/si";
+import PhoneInput, {
+  isPossiblePhoneNumber,
+  formatPhoneNumber,
+  formatPhoneNumberIntl,
+} from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 const Register = () => {
-  const button = useRef(null);
   const navigate = useNavigate();
+  const [value, setValue] = useState("");
   useEffect(() => {
     if (checkLoginFromLogin()) {
       navigate("/");
@@ -23,53 +29,11 @@ const Register = () => {
   const getErrorMessage = (message) => {
     let toReturn = "";
     for (const key in message) {
-      toReturn += `[${capitalizeFirstLetter(key.split("_").join(" "))}]: ${
-        message[key][0]
-      }\n`;
+      toReturn += `${capitalizeFirstLetter(
+        key.split("_").join(" ")
+      )}: ${capitalizeFirstLetter(message[key][0])}\n`;
     }
     return toReturn;
-  };
-
-  const register = async (e) => {
-    e.preventDefault();
-    // button.style.pointerEvents = "none";
-    // button.innerHTML =
-    //   '<div className="spinner-border custom-spin" role="status"><span className="visually-hidden">Loading...</span></div>';
-    resetMessage();
-
-    if (payload.email !== "") {
-      if (payload.password !== "" && payload.password.length >= 8) {
-        await axios
-          .post(CONSTANT.server + "authentication/user", {
-            ...payload,
-          })
-          .then((responce) => {
-            let res = responce.data;
-            if (res.message) {
-              setMessage(getErrorMessage(res.message), "red-500");
-              // setMessage(res.message, "red-500");
-            } else {
-              sessionStorage.setItem(
-                "loggedin",
-                JSON.stringify({
-                  data: res,
-                })
-              );
-              navigate("/");
-            }
-          })
-          .catch((error) => {
-            console.log(error);
-            setMessage("Server error.", "red-500");
-          });
-      } else {
-        setMessage("Password should be greater than 7 characters.", "red-500");
-      }
-    } else {
-      setMessage("Please enter username.", "red-500");
-    }
-    // button.style.pointerEvents = "unset";
-    // button.innerHTML = "Register";
   };
 
   const init__payload = {
@@ -88,6 +52,72 @@ const Register = () => {
       ...payload,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const register = async (e) => {
+    e.preventDefault();
+    e.target.style.pointerEvents = "none";
+    e.target.innerHTML =
+      '<div className="spinner-border custom-spin" role="status"><span className="visually-hidden">Loading...</span></div>';
+    resetMessage();
+
+    let allGood = true;
+
+    if (!payload.name) {
+      setMessage("Please enter name.", "red-500");
+      allGood = false;
+    } else if (
+      !payload.email ||
+      !/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(payload.email)
+    ) {
+      setMessage("Please enter valid email.", "red-500");
+      allGood = false;
+    } else if (!payload.companyName) {
+      setMessage("Please enter company name.", "red-500");
+      allGood = false;
+    } else if (!payload.address) {
+      setMessage("Please enter company address.", "red-500");
+      allGood = false;
+    } else if (!value) {
+      setMessage("Please enter phone number.", "red-500");
+      allGood = false;
+    } else if (!isPossiblePhoneNumber(value)) {
+      setMessage("Please enter valid phone number.", "red-500");
+      allGood = false;
+    } else if (!payload.password || payload?.password?.length < 8) {
+      setMessage("Password should be atleast 8 characters long.", "red-500");
+      allGood = false;
+    }
+
+    if (allGood) {
+      await axios
+        .post(CONSTANT.server + "authentication/user", {
+          ...payload,
+          phone: value,
+        })
+        .then((responce) => {
+          let res = responce.data;
+          if (res.message) {
+            setMessage(getErrorMessage(res.message), "red-500");
+            // setMessage(res.message, "red-500");
+          } else {
+            sessionStorage.setItem(
+              "loggedin",
+              JSON.stringify({
+                data: res,
+              })
+            );
+            navigate("/");
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          setMessage("Server error.", "red-500");
+        });
+    }
+
+    e.target.style.pointerEvents = "unset";
+    e.target.innerHTML = "Register";
   };
 
   return (
@@ -158,13 +188,29 @@ const Register = () => {
               </div>
 
               <div className="flex flex-row w-full space-x-2">
-                <InputBox
+                {/* <InputBox
                   type="tel"
                   name="phone"
                   label="Phone"
                   value={payload.phone}
                   onChange={changePayload}
-                />
+                /> */}
+                <div className="w-full">
+                  <label
+                    htmlFor={"phone"}
+                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    Phone Number
+                  </label>
+                  <PhoneInput
+                    international
+                    id="phone"
+                    value={value}
+                    onChange={setValue}
+                    placeholder="Phone Number"
+                    className="__PhoneInputInput px-3 h-[2.7rem] w-full flex flex-row items-center justify-center text-sm bg-white border border-gray-300 text-gray-900 rounded-lg focus-within:ring-2 ring-black"
+                  />
+                </div>
 
                 <InputBox
                   type="password"
@@ -214,7 +260,7 @@ const Register = () => {
             {/* <h1 class="text-center text-4xl font-extrabold tracking-tight italic text-white md:text-5xl lg:text-6xl">
               Fulfill Master
             </h1> */}
-             <img
+            <img
               className={`w-60 object-contain`}
               src="/logo_full.png"
               alt="Fulfill Master Logo"

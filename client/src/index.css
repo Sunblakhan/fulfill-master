@@ -14,3 +14,9 @@ body {
   -webkit-font-smoothing: auto;
   -moz-osx-font-smoothing: auto;
 }
+
+
+.__PhoneInputInput .PhoneInputInput {
+  outline: none !important;
+  background: transparent !important;
+}

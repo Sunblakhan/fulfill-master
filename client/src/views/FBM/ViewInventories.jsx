@@ -134,6 +134,7 @@ export default function ViewInventories() {
         {
           id: isEdit.id,
           comments: isEdit.value,
+          status: "pending",
         }
       )
       .then(async (responce) => {

@@ -53,7 +53,7 @@ export default function Navbar(props) {
               <img
                 className="w-8 h-8 rounded-full"
                 src={generator.generateRandomAvatar(
-                  props?.session?.personal?.name
+                  props?.session?.personal?.email
                 )}
                 alt="user photo"
               />
