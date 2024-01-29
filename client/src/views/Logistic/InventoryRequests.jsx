@@ -170,6 +170,7 @@ const RenderRow = ({ data, isEdit, setIsEdit, updateStatus }) => {
                     id: data?.id,
                     open: true,
                     type: "requested",
+                    _type: data?._type,
                   });
                 }}
                 id="request"
@@ -184,6 +185,7 @@ const RenderRow = ({ data, isEdit, setIsEdit, updateStatus }) => {
                     id: data?.id,
                     open: true,
                     type: "shipped",
+                    _type: data?._type,
                   });
                 }}
                 id="shipped"
@@ -308,6 +310,7 @@ export default function InventoryRequests(props) {
     value: "",
     id: null,
     type: "",
+    _type: "",
   });
 
   const updateStatus = async (e, __payload = {}) => {
@@ -315,6 +318,25 @@ export default function InventoryRequests(props) {
     resetMessage();
     await axios
       .put(CONSTANT.server + `api/fba-inventory-requests`, {
+        ...__payload,
+      })
+      .then(async (responce) => {
+        if (responce?.message) {
+          setMessage(responce?.message, "red-500");
+        } else {
+          fetchInventories();
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const updateStatusFBM = async (e, __payload = {}) => {
+    e.preventDefault();
+    resetMessage();
+    await axios
+      .put(CONSTANT.server + `api/fbm-inventory-requests`, {
         ...__payload,
       })
       .then(async (responce) => {
@@ -352,7 +374,9 @@ export default function InventoryRequests(props) {
                 data={a}
                 setIsEdit={setIsEdit}
                 isEdit={isEdit}
-                updateStatus={updateStatus}
+                updateStatus={
+                  a?._type === "fba" ? updateStatus : updateStatusFBM
+                }
               />
             );
           })}
@@ -399,11 +423,20 @@ export default function InventoryRequests(props) {
               className="mt-5"
               label="Update"
               onClick={(e) => {
-                updateStatus(e, {
-                  id: isEdit?.id,
-                  status: "shipped",
-                  trackingNumber: isEdit?.value,
-                });
+                if (isEdit?._type === "fba") {
+                  updateStatus(e, {
+                    id: isEdit?.id,
+                    status: "shipped",
+                    trackingNumber: isEdit?.value,
+                  });
+                } else {
+                  updateStatusFBM(e, {
+                    id: isEdit?.id,
+                    status: "shipped",
+                    trackingNumber: isEdit?.value,
+                  });
+                }
+
                 setIsEdit({
                   open: false,
                   value: "",
@@ -436,11 +469,19 @@ export default function InventoryRequests(props) {
               className="mt-5"
               label="Update"
               onClick={(e) => {
-                updateStatus(e, {
-                  id: isEdit?.id,
-                  status: "requested",
-                  logisticsComments: isEdit?.value,
-                });
+                if (isEdit?._type === "fba") {
+                  updateStatus(e, {
+                    id: isEdit?.id,
+                    status: "requested",
+                    logisticsComments: isEdit?.value,
+                  });
+                } else {
+                  updateStatusFBM(e, {
+                    id: isEdit?.id,
+                    status: "requested",
+                    logisticsComments: isEdit?.value,
+                  });
+                }
                 setIsEdit({
                   open: false,
                   value: "",
@@ -523,7 +564,9 @@ export default function InventoryRequests(props) {
                   data={a}
                   setIsEdit={setIsEdit}
                   isEdit={isEdit}
-                  updateStatus={updateStatus}
+                  updateStatus={
+                    a?._type === "fba" ? updateStatus : updateStatusFBM
+                  }
                 />
               );
             })}

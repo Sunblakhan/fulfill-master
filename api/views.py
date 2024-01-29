@@ -153,7 +153,7 @@ def fbm_inventory(request, user_id=None):
     elif request.method == "PUT":
         try:
             fbm_inventory_request = models.FBMInventoryRequest.objects.get(
-                user__id=int(user_id), id=request.data.get("id")
+                id=request.data.get("id")
             )
         except models.FBMInventoryRequest.DoesNotExist:
             return JsonResponse(
